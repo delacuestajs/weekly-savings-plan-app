@@ -1,0 +1,33 @@
+CREATE DATABASE IF NOT EXISTS savings_db;
+USE savings_db;
+
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    firstname VARCHAR(100) NOT NULL,
+    lastname VARCHAR(100) NOT NULL,
+    nickname VARCHAR(100) DEFAULT NULL,
+    telephone VARCHAR(20) DEFAULT NULL,
+    picture VARCHAR(500) DEFAULT NULL,
+    comments TEXT,
+    multiplier INT DEFAULT 1,
+    status TINYINT DEFAULT 1,
+    deleted_at TIMESTAMP NULL DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS savings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT DEFAULT NULL,
+    name VARCHAR(255) NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    payment_method VARCHAR(50) NOT NULL,
+    status ENUM('pending', 'completed', 'failed') DEFAULT 'pending',
+    is_active TINYINT DEFAULT 1,
+    deleted_at TIMESTAMP NULL DEFAULT NULL,
+    description TEXT,
+    attachment VARCHAR(500) DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
