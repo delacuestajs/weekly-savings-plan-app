@@ -247,6 +247,80 @@ function translatedDate($dateStr) {
                     </div>
                 <?php endforeach; ?>
             </div>
+            
+            <?php if (!empty($monthData['activities'])): ?>
+            <div class="mt-4 pt-4 border-t border-gray-200">
+                <h3 class="text-sm font-semibold text-gray-600 mb-3"><?= Locale::get('activities') ?></h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    <?php foreach ($monthData['activities'] as $activity): ?>
+                        <?php
+                        $actPaid = $activity['paid'] ?? false;
+                        $actPartial = $activity['partial'] ?? false;
+                        $actPending = $activity['pending'] ?? 0;
+                        $actPaidAmount = $activity['paid_amount'] ?? 0;
+                        $actMultipliedValue = $activity['multiplied_value'] ?? $activity['value'] ?? 0;
+                        
+                        $actBgClass = '';
+                        $actBorderClass = '';
+                        $actTextClass = '';
+                        $actStatusIcon = '';
+                        $actStatusText = '';
+
+                        if ($actPaid) {
+                            $actBgClass = 'bg-green-50';
+                            $actBorderClass = 'border-green-300';
+                            $actTextClass = 'text-green-800';
+                            $actStatusIcon = '✓';
+                            $actStatusText = Locale::get('paid');
+                        } elseif ($actPartial) {
+                            $actBgClass = 'bg-yellow-50';
+                            $actBorderClass = 'border-yellow-300';
+                            $actTextClass = 'text-yellow-800';
+                            $actStatusIcon = '⏳';
+                            $actStatusText = Locale::get('partial');
+                        } else {
+                            $actBgClass = 'bg-red-50';
+                            $actBorderClass = 'border-red-200';
+                            $actTextClass = 'text-red-800';
+                            $actStatusIcon = '✗';
+                            $actStatusText = Locale::get('unpaid');
+                        }
+                        ?>
+                        <div class="<?= $actBgClass ?> border <?= $actBorderClass ?> rounded-lg p-3 transition-all hover:shadow-md">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <span class="font-bold <?= $actTextClass ?>"><?= htmlspecialchars($activity['name']) ?></span>
+                                </div>
+                                <span class="text-lg"><?= $actStatusIcon ?></span>
+                            </div>
+                            <div class="text-xs text-gray-500 mb-2">
+                                <?= date('M d, Y', strtotime($activity['activity_date'])) ?>
+                            </div>
+                            <?php if (!empty($activity['description'])): ?>
+                                <p class="text-xs text-gray-600 mb-2"><?= htmlspecialchars($activity['description']) ?></p>
+                            <?php endif; ?>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium <?= $actTextClass ?>">
+                                    $<?= number_format($actMultipliedValue, 0) ?>
+                                </span>
+                                <?php if (!$actPaid): ?>
+                                    <span class="text-xs text-gray-500">
+                                        <?= Locale::get('pending') ?>: $<?= number_format($actPending, 0) ?>
+                                    </span>
+                                <?php endif; ?>
+                            </div>
+                            <?php if ($actPartial): ?>
+                                <div class="mt-2">
+                                    <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                        <div class="bg-yellow-500 h-1.5 rounded-full" style="width: <?= $actMultipliedValue > 0 ? round(($actPaidAmount / $actMultipliedValue) * 100) : 0 ?>%"></div>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <?php endif; ?>
         </div>
     <?php endforeach; ?>
 </div>

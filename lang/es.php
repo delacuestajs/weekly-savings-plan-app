@@ -55,7 +55,7 @@ return [
     'delete' => 'Eliminar',
     'view' => 'Ver',
     
-    'select_user_optional' => 'Seleccionar Usuario (Opcional)',
+    'select_user' => 'Seleccionar Usuario',
     'select_method' => 'Seleccionar Método',
     'description' => 'Descripción',
     'save' => 'Guardar',
@@ -109,7 +109,15 @@ return [
     'multiply_hint' => 'Multiplicar meta semanal de ahorro (ej., 2 = doble)',
     
     'select_user' => 'Seleccionar Usuario',
+    'user_required' => 'Por favor seleccione un usuario',
+    'name_required' => 'Por favor ingrese un nombre',
+    'amount_required' => 'Por favor ingrese un monto',
+    'method_required' => 'Por favor seleccione un método de pago',
     'are_you_sure' => '¿Estás seguro?',
+    'all_users' => 'Todos los Usuarios',
+    'all_methods' => 'Todos los Métodos',
+    'month' => 'Mes',
+    'clear_filters' => 'Limpiar Filtros',
     
     'created_successfully' => 'creado exitosamente',
     'updated_successfully' => 'actualizado exitosamente',
@@ -147,4 +155,20 @@ return [
     
     'of_goal' => 'de la meta',
     'week_x_multiplier' => 'Semana 1 × multiplicador',
+    
+    'activities' => 'Actividades',
+    'add_new_activity' => 'Agregar Nueva Actividad',
+    'edit_activity' => 'Editar Actividad',
+    'activity_name_placeholder' => 'Ingrese el nombre de la actividad',
+    'activity_description_placeholder' => 'Ingrese la descripción de la actividad (opcional)',
+    'activity_date' => 'Fecha de Actividad',
+    'value' => 'Valor',
+    'total_activities' => 'Total de Actividades',
+    'activity_created_successfully' => 'Actividad creada exitosamente',
+    'activity_updated_successfully' => 'Actividad actualizada exitosamente',
+    'activity_deleted_successfully' => 'Actividad eliminada exitosamente',
+    'error_creating_activity' => 'Error al crear actividad',
+    'error_updating_activity' => 'Error al actualizar actividad',
+    'error_deleting_activity' => 'Error al eliminar actividad',
+    'activity_not_found' => 'Actividad no encontrada',
 ];

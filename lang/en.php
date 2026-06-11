@@ -55,7 +55,7 @@ return [
     'delete' => 'Delete',
     'view' => 'View',
     
-    'select_user_optional' => 'Select User (Optional)',
+    'select_user' => 'Select User',
     'select_method' => 'Select Method',
     'description' => 'Description',
     'save' => 'Save',
@@ -96,7 +96,15 @@ return [
     'allowed_image_types' => 'JPG, PNG, GIF, WebP (max 5MB)',
     
     'select_user' => 'Select User',
+    'user_required' => 'Please select a user',
+    'name_required' => 'Please enter a name',
+    'amount_required' => 'Please enter an amount',
+    'method_required' => 'Please select a payment method',
     'are_you_sure' => 'Are you sure?',
+    'all_users' => 'All Users',
+    'all_methods' => 'All Methods',
+    'month' => 'Month',
+    'clear_filters' => 'Clear Filters',
     
     'created_successfully' => 'created successfully',
     'updated_successfully' => 'updated successfully',
@@ -134,4 +142,20 @@ return [
     
     'of_goal' => 'of goal',
     'week_x_multiplier' => 'Week 1 × multiplier',
+    
+    'activities' => 'Activities',
+    'add_new_activity' => 'Add New Activity',
+    'edit_activity' => 'Edit Activity',
+    'activity_name_placeholder' => 'Enter activity name',
+    'activity_description_placeholder' => 'Enter activity description (optional)',
+    'activity_date' => 'Activity Date',
+    'value' => 'Value',
+    'total_activities' => 'Total Activities',
+    'activity_created_successfully' => 'Activity created successfully',
+    'activity_updated_successfully' => 'Activity updated successfully',
+    'activity_deleted_successfully' => 'Activity deleted successfully',
+    'error_creating_activity' => 'Error creating activity',
+    'error_updating_activity' => 'Error updating activity',
+    'error_deleting_activity' => 'Error deleting activity',
+    'activity_not_found' => 'Activity not found',
 ];

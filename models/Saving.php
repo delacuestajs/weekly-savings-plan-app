@@ -26,14 +26,38 @@ class Saving
         $this->conn = $database->getConnection();
     }
 
-    public function getAll()
+    public function getAll($filters = [])
     {
         $query = "SELECT s.*, u.firstname, u.lastname, u.nickname, u.picture 
                   FROM {$this->table} s 
                   LEFT JOIN users u ON s.user_id = u.id AND u.status = 1 AND u.deleted_at IS NULL
-                  WHERE s.is_active = 1 AND s.deleted_at IS NULL
-                  ORDER BY s.created_at DESC";
+                  WHERE s.is_active = 1 AND s.deleted_at IS NULL";
+        
+        $params = [];
+        
+        if (!empty($filters['user_id'])) {
+            $query .= " AND s.user_id = :user_id";
+            $params[':user_id'] = $filters['user_id'];
+        }
+        
+        if (!empty($filters['payment_method'])) {
+            $query .= " AND s.payment_method = :payment_method";
+            $params[':payment_method'] = $filters['payment_method'];
+        }
+        
+        if (!empty($filters['month'])) {
+            $query .= " AND YEAR(s.created_at) = :year AND MONTH(s.created_at) = :month";
+            $date = explode('-', $filters['month']);
+            $params[':year'] = $date[0];
+            $params[':month'] = $date[1];
+        }
+        
+        $query .= " ORDER BY s.created_at DESC";
+        
         $stmt = $this->conn->prepare($query);
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
         $stmt->execute();
         return $stmt;
     }

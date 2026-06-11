@@ -120,13 +120,17 @@ class WeeklySaving
             ];
         }
 
+        $activities = $this->getActivitiesByYear($year);
+        
         $grouped = [];
         for ($m = 1; $m <= 12; $m++) {
             $grouped[$m] = [
                 'name' => $this->getMonthName($m),
                 'weeks' => [],
+                'activities' => [],
                 'subtotal' => 0,
                 'subtotal_paid' => 0,
+                'activities_total' => 0,
             ];
         }
 
@@ -135,33 +139,99 @@ class WeeklySaving
             $grouped[$monthKey]['weeks'][] = $weekData;
             $grouped[$monthKey]['subtotal'] += $weekData['value'];
         }
+        
+        foreach ($activities as $activity) {
+            $monthKey = (int)date('n', strtotime($activity['activity_date']));
+            $activity['base_value'] = $activity['value'];
+            $activity['multiplied_value'] = $activity['value'] * $multiplier;
+            $activity['paid'] = false;
+            $activity['pending'] = $activity['multiplied_value'];
+            $activity['partial'] = false;
+            $activity['paid_amount'] = 0;
+            $grouped[$monthKey]['activities'][] = $activity;
+            $grouped[$monthKey]['subtotal'] += $activity['multiplied_value'];
+        }
 
         $remainingPayment = $totalPaid;
         foreach ($grouped as $monthKey => &$monthData) {
-            foreach ($monthData['weeks'] as &$weekData) {
-                if ($remainingPayment >= $weekData['value']) {
-                    $weekData['paid'] = true;
-                    $weekData['pending'] = 0;
-                    $remainingPayment -= $weekData['value'];
-                    $monthData['subtotal_paid'] += $weekData['value'];
-                } elseif ($remainingPayment > 0) {
-                    $weekData['paid'] = false;
-                    $weekData['pending'] = $weekData['value'] - $remainingPayment;
-                    $weekData['partial'] = true;
-                    $weekData['paid_amount'] = $remainingPayment;
-                    $monthData['subtotal_paid'] += $remainingPayment;
-                    $remainingPayment = 0;
+            $items = [];
+            
+            foreach ($monthData['weeks'] as $index => $weekData) {
+                $items[] = [
+                    'type' => 'week',
+                    'index' => $index,
+                    'date' => $weekData['start_date']
+                ];
+            }
+            
+            foreach ($monthData['activities'] as $index => $activity) {
+                $items[] = [
+                    'type' => 'activity',
+                    'index' => $index,
+                    'date' => $activity['activity_date']
+                ];
+            }
+            
+            usort($items, function($a, $b) {
+                return strcmp($a['date'], $b['date']);
+            });
+            
+            foreach ($items as $item) {
+                if ($item['type'] === 'week') {
+                    $index = $item['index'];
+                    $value = $monthData['weeks'][$index]['value'];
+                    
+                    if ($remainingPayment >= $value) {
+                        $monthData['weeks'][$index]['paid'] = true;
+                        $monthData['weeks'][$index]['pending'] = 0;
+                        $remainingPayment -= $value;
+                        $monthData['subtotal_paid'] += $value;
+                    } elseif ($remainingPayment > 0) {
+                        $monthData['weeks'][$index]['paid'] = false;
+                        $monthData['weeks'][$index]['pending'] = $value - $remainingPayment;
+                        $monthData['weeks'][$index]['partial'] = true;
+                        $monthData['weeks'][$index]['paid_amount'] = $remainingPayment;
+                        $monthData['subtotal_paid'] += $remainingPayment;
+                        $remainingPayment = 0;
+                    } else {
+                        $monthData['weeks'][$index]['paid'] = false;
+                        $monthData['weeks'][$index]['pending'] = $value;
+                        $monthData['weeks'][$index]['partial'] = false;
+                        $monthData['weeks'][$index]['paid_amount'] = 0;
+                    }
                 } else {
-                    $weekData['paid'] = false;
-                    $weekData['pending'] = $weekData['value'];
-                    $weekData['partial'] = false;
-                    $weekData['paid_amount'] = 0;
+                    $index = $item['index'];
+                    $value = $monthData['activities'][$index]['multiplied_value'];
+                    
+                    if ($remainingPayment >= $value) {
+                        $monthData['activities'][$index]['paid'] = true;
+                        $monthData['activities'][$index]['pending'] = 0;
+                        $remainingPayment -= $value;
+                        $monthData['subtotal_paid'] += $value;
+                    } elseif ($remainingPayment > 0) {
+                        $monthData['activities'][$index]['paid'] = false;
+                        $monthData['activities'][$index]['pending'] = $value - $remainingPayment;
+                        $monthData['activities'][$index]['partial'] = true;
+                        $monthData['activities'][$index]['paid_amount'] = $remainingPayment;
+                        $monthData['subtotal_paid'] += $remainingPayment;
+                        $remainingPayment = 0;
+                    } else {
+                        $monthData['activities'][$index]['paid'] = false;
+                        $monthData['activities'][$index]['pending'] = $value;
+                        $monthData['activities'][$index]['partial'] = false;
+                        $monthData['activities'][$index]['paid_amount'] = 0;
+                    }
                 }
             }
         }
 
         $totalYearGoal = 52 * 53 / 2 * 1000 * $multiplier;
-        $totalPaidAmount = min($totalPaid, $totalYearGoal);
+        $totalActivities = 0;
+        foreach ($activities as $activity) {
+            $totalActivities += $activity['value'] * $multiplier;
+        }
+        $totalYearGoalWithActivities = $totalYearGoal + $totalActivities;
+        $totalPaidAmount = min($totalPaid, $totalYearGoalWithActivities);
 
         return [
             'year' => $year,
@@ -171,8 +241,10 @@ class WeeklySaving
             'grouped' => $grouped,
             'total_paid' => $totalPaid,
             'total_year_goal' => $totalYearGoal,
-            'total_pending' => max(0, $totalYearGoal - $totalPaidAmount),
-            'progress_percent' => $totalYearGoal > 0 ? round(($totalPaidAmount / $totalYearGoal) * 100, 1) : 0,
+            'total_activities' => $totalActivities,
+            'total_year_goal_with_activities' => $totalYearGoalWithActivities,
+            'total_pending' => max(0, $totalYearGoalWithActivities - $totalPaidAmount),
+            'progress_percent' => $totalYearGoalWithActivities > 0 ? round(($totalPaidAmount / $totalYearGoalWithActivities) * 100, 1) : 0,
         ];
     }
 
@@ -241,5 +313,16 @@ class WeeklySaving
         }
 
         return min(52, intdiv($diff, 7) + 1);
+    }
+
+    private function getActivitiesByYear($year)
+    {
+        $query = "SELECT * FROM activities 
+                  WHERE YEAR(activity_date) = :year AND is_active = 1 AND deleted_at IS NULL
+                  ORDER BY activity_date ASC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':year', $year);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

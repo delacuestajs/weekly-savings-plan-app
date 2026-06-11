@@ -19,8 +19,15 @@ class SavingController
 
     public function index()
     {
-        $savings = $this->saving->getAll();
+        $filters = [
+            'user_id' => $_GET['user_id'] ?? '',
+            'payment_method' => $_GET['payment_method'] ?? '',
+            'month' => $_GET['month'] ?? ''
+        ];
+        
+        $savings = $this->saving->getAll($filters);
         $total = $this->saving->getTotalSavings();
+        $usersList = $this->user->getAll()->fetchAll(PDO::FETCH_ASSOC);
         require __DIR__ . '/../views/list.php';
     }
 
@@ -52,7 +59,12 @@ class SavingController
 
     public function store()
     {
-        $this->saving->user_id = !empty($_POST['user_id']) ? $_POST['user_id'] : null;
+        if (empty($_POST['user_id'])) {
+            header('Location: index.php?action=create&toast=error&message=' . urlencode(Locale::get('user_required')));
+            exit;
+        }
+        
+        $this->saving->user_id = $_POST['user_id'];
         $this->saving->name = $_POST['name'];
         $this->saving->amount = $_POST['amount'];
         $this->saving->payment_method = $_POST['payment_method'];
@@ -64,17 +76,17 @@ class SavingController
         if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
             $uploaded = $this->saving->uploadAttachment($_FILES['attachment']);
             if ($uploaded === false) {
-                header('Location: index.php?action=create&toast=error&message=' . urlencode('Invalid file type or file too large. Allowed: JPG, PNG, GIF, WebP, PDF, DOC, DOCX (max 5MB)'));
+                header('Location: index.php?action=create&toast=error&message=' . urlencode(Locale::get('invalid_file')));
                 exit;
             }
             $this->saving->attachment = $uploaded;
         }
 
         if ($this->saving->create()) {
-            header('Location: index.php?toast=success&message=' . urlencode('Saving created successfully'));
+            header('Location: index.php?toast=success&message=' . urlencode(Locale::get('created_successfully')));
             exit;
         }
-        header('Location: index.php?toast=error&message=' . urlencode('Error creating saving'));
+        header('Location: index.php?toast=error&message=' . urlencode(Locale::get('error_creating')));
         exit;
     }
 

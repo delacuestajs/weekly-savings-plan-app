@@ -3,12 +3,12 @@
 <div class="max-w-5xl mx-auto bg-white rounded-lg shadow-md p-4 md:p-6">
     <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-6"><?= Locale::get('add_new_saving') ?></h1>
 
-    <form action="index.php?action=store" method="POST" enctype="multipart/form-data" class="max-w-lg">
+    <form action="index.php?action=store" method="POST" enctype="multipart/form-data" class="max-w-lg" novalidate>
         <div class="mb-4">
-            <label for="user_id" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('user') ?></label>
+            <label for="user_id" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('user') ?> *</label>
             <div class="flex items-center gap-3">
                 <select id="user_id" name="user_id" onchange="updateUserBadge(this)" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value=""><?= Locale::get('select_user_optional') ?></option>
+                    <option value=""><?= Locale::get('select_user') ?></option>
                 <?php foreach ($users as $userRow): ?>
                     <option value="<?= $userRow['id'] ?>"><?= htmlspecialchars($userRow['firstname'] . ' ' . $userRow['lastname']) ?><?= !empty($userRow['nickname']) ? ' (' . htmlspecialchars($userRow['nickname']) . ')' : '' ?></option>
                 <?php endforeach; ?>
@@ -118,5 +118,42 @@
         </div>
     </form>
 </div>
+
+<script>
+document.querySelector('form').addEventListener('submit', function(e) {
+    var userSelect = document.getElementById('user_id');
+    var nameInput = document.getElementById('name');
+    var amountInput = document.getElementById('amount');
+    var methodSelect = document.getElementById('payment_method');
+    
+    if (!userSelect.value) {
+        e.preventDefault();
+        alert('<?= Locale::get('user_required') ?>');
+        userSelect.focus();
+        return false;
+    }
+    
+    if (!nameInput.value.trim()) {
+        e.preventDefault();
+        alert('<?= Locale::get('name_required') ?>');
+        nameInput.focus();
+        return false;
+    }
+    
+    if (!amountInput.value || parseFloat(amountInput.value) <= 0) {
+        e.preventDefault();
+        alert('<?= Locale::get('amount_required') ?>');
+        amountInput.focus();
+        return false;
+    }
+    
+    if (!methodSelect.value) {
+        e.preventDefault();
+        alert('<?= Locale::get('method_required') ?>');
+        methodSelect.focus();
+        return false;
+    }
+});
+</script>
 
 <?php require_once __DIR__ . '/../views/footer.php'; ?>

@@ -3,6 +3,7 @@
 require_once __DIR__ . '/locale.php';
 require_once __DIR__ . '/controllers/SavingController.php';
 require_once __DIR__ . '/controllers/UserController.php';
+require_once __DIR__ . '/controllers/ActivityController.php';
 
 if (isset($_GET['lang'])) {
     Locale::setLanguage($_GET['lang']);
@@ -16,6 +17,29 @@ $id = $_GET['id'] ?? null;
 
 if ($module === 'user') {
     $controller = new UserController();
+    
+    switch ($action) {
+        case 'create':
+            $controller->create();
+            break;
+        case 'store':
+            $controller->store();
+            break;
+        case 'edit':
+            $controller->edit($id);
+            break;
+        case 'update':
+            $controller->update($id);
+            break;
+        case 'delete':
+            $controller->delete($id);
+            break;
+        default:
+            $controller->index();
+            break;
+    }
+} elseif ($module === 'activity') {
+    $controller = new ActivityController();
     
     switch ($action) {
         case 'create':

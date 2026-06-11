@@ -11,6 +11,41 @@
         <a href="index.php?action=create" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition duration-200"><?= Locale::get('add_new_saving') ?></a>
     </div>
 
+    <form method="GET" action="index.php" class="mb-4 md:mb-6">
+        <input type="hidden" name="action" value="payments">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div>
+                <label for="filter_user" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('user') ?></label>
+                <select id="filter_user" name="user_id" onchange="this.form.submit()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value=""><?= Locale::get('all_users') ?></option>
+                    <?php foreach ($usersList as $userRow): ?>
+                        <option value="<?= $userRow['id'] ?>" <?= ($filters['user_id'] == $userRow['id']) ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($userRow['firstname'] . ' ' . $userRow['lastname']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div>
+                <label for="filter_method" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('payment_method') ?></label>
+                <select id="filter_method" name="payment_method" onchange="this.form.submit()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value=""><?= Locale::get('all_methods') ?></option>
+                    <option value="cash" <?= ($filters['payment_method'] === 'cash') ? 'selected' : '' ?>><?= Locale::get('cash') ?></option>
+                    <option value="bank_transfer" <?= ($filters['payment_method'] === 'bank_transfer') ? 'selected' : '' ?>><?= Locale::get('bank_transfer') ?></option>
+                    <option value="credit_card" <?= ($filters['payment_method'] === 'credit_card') ? 'selected' : '' ?>><?= Locale::get('credit_card') ?></option>
+                    <option value="debit_card" <?= ($filters['payment_method'] === 'debit_card') ? 'selected' : '' ?>><?= Locale::get('debit_card') ?></option>
+                    <option value="check" <?= ($filters['payment_method'] === 'check') ? 'selected' : '' ?>><?= Locale::get('check') ?></option>
+                </select>
+            </div>
+            <div>
+                <label for="filter_month" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('month') ?></label>
+                <input type="month" id="filter_month" name="month" value="<?= htmlspecialchars($filters['month']) ?>" onchange="this.form.submit()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            <div class="flex items-end">
+                <a href="index.php?action=payments" class="w-full bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-4 rounded-lg transition duration-200 text-center"><?= Locale::get('clear_filters') ?></a>
+            </div>
+        </div>
+    </form>
+
     <div class="overflow-x-auto">
         <table class="w-full border-collapse">
             <thead>
