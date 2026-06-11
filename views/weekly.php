@@ -1,5 +1,28 @@
 <?php require_once __DIR__ . '/../views/header.php'; ?>
 
+<?php
+function translatedDate($dateStr) {
+    $ts = strtotime($dateStr);
+    $month = (int)date('n', $ts);
+    $day = date('d', $ts);
+    $shortMonths = [
+        1 => Locale::get('jan'),
+        2 => Locale::get('feb'),
+        3 => Locale::get('mar'),
+        4 => Locale::get('apr'),
+        5 => Locale::get('may_short'),
+        6 => Locale::get('jun'),
+        7 => Locale::get('jul'),
+        8 => Locale::get('aug'),
+        9 => Locale::get('sep'),
+        10 => Locale::get('oct'),
+        11 => Locale::get('nov'),
+        12 => Locale::get('dec'),
+    ];
+    return ($shortMonths[$month] ?? date('M', $ts)) . ' ' . $day;
+}
+?>
+
 <div class="max-w-5xl mx-auto">
     <div class="bg-white rounded-lg shadow-md p-4 md:p-6 mb-6">
         <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
@@ -73,7 +96,7 @@
             <div class="bg-green-50 rounded-lg p-4">
                 <p class="text-sm text-green-600 font-medium"><?= Locale::get('total_paid') ?></p>
                 <p class="text-2xl font-bold text-green-800">$<?= number_format($data['total_paid'], 2) ?></p>
-                <p class="text-xs text-green-500"><?= $data['progress_percent'] ?>% of goal</p>
+                <p class="text-xs text-green-500"><?= $data['progress_percent'] ?>% <?= Locale::get('of_goal') ?></p>
             </div>
             <div class="bg-orange-50 rounded-lg p-4">
                 <p class="text-sm text-orange-600 font-medium"><?= Locale::get('remaining') ?></p>
@@ -202,7 +225,7 @@
                             <span class="text-lg"><?= $statusIcon ?></span>
                         </div>
                         <div class="text-xs text-gray-500 mb-2">
-                            <?= date('M d', strtotime($weekData['start_date'])) ?> - <?= date('M d', strtotime($weekData['end_date'])) ?>
+                            <?= translatedDate($weekData['start_date']) ?> - <?= translatedDate($weekData['end_date']) ?>
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-sm font-medium <?= $textClass ?>">

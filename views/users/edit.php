@@ -68,12 +68,12 @@
         </div>
 
         <div class="mb-4">
-            <label for="multiplier" class="block text-sm font-medium text-gray-700 mb-1">Savings Multiplier</label>
+            <label for="multiplier" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('savings_multiplier') ?></label>
             <div class="flex items-center gap-3">
                 <input type="number" id="multiplier" name="multiplier" value="<?= $user['multiplier'] ?? 1 ?>" min="1" max="100" required class="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                <span class="text-sm text-gray-500">Multiply weekly savings goal</span>
+                <span class="text-sm text-gray-500"><?= Locale::get('multiply_weekly_goal') ?></span>
             </div>
-            <p class="mt-1 text-xs text-gray-400">Week 1 × multiplier = $<span id="preview_multiplier"><?= number_format(1000 * ($user['multiplier'] ?? 1)) ?></span></p>
+            <p class="mt-1 text-xs text-gray-400"><?= Locale::get('week_x_multiplier') ?> = $<span id="preview_multiplier"><?= number_format(1000 * ($user['multiplier'] ?? 1)) ?></span></p>
         </div>
 
         <script>

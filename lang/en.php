@@ -118,4 +118,20 @@ return [
     'october' => 'October',
     'november' => 'November',
     'december' => 'December',
+    
+    'jan' => 'Jan',
+    'feb' => 'Feb',
+    'mar' => 'Mar',
+    'apr' => 'Apr',
+    'may_short' => 'May',
+    'jun' => 'Jun',
+    'jul' => 'Jul',
+    'aug' => 'Aug',
+    'sep' => 'Sep',
+    'oct' => 'Oct',
+    'nov' => 'Nov',
+    'dec' => 'Dec',
+    
+    'of_goal' => 'of goal',
+    'week_x_multiplier' => 'Week 1 × multiplier',
 ];

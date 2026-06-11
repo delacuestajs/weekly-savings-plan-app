@@ -131,4 +131,20 @@ return [
     'october' => 'Octubre',
     'november' => 'Noviembre',
     'december' => 'Diciembre',
+    
+    'jan' => 'Ene',
+    'feb' => 'Feb',
+    'mar' => 'Mar',
+    'apr' => 'Abr',
+    'may_short' => 'May',
+    'jun' => 'Jun',
+    'jul' => 'Jul',
+    'aug' => 'Ago',
+    'sep' => 'Sep',
+    'oct' => 'Oct',
+    'nov' => 'Nov',
+    'dec' => 'Dic',
+    
+    'of_goal' => 'de la meta',
+    'week_x_multiplier' => 'Semana 1 × multiplicador',
 ];

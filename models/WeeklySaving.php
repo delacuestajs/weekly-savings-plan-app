@@ -31,6 +31,25 @@ class WeeklySaving
         return $months[$month] ?? date('F', mktime(0, 0, 0, $month, 1));
     }
 
+    private function getShortMonthName($month)
+    {
+        $months = [
+            1 => Locale::get('jan'),
+            2 => Locale::get('feb'),
+            3 => Locale::get('mar'),
+            4 => Locale::get('apr'),
+            5 => Locale::get('may_short'),
+            6 => Locale::get('jun'),
+            7 => Locale::get('jul'),
+            8 => Locale::get('aug'),
+            9 => Locale::get('sep'),
+            10 => Locale::get('oct'),
+            11 => Locale::get('nov'),
+            12 => Locale::get('dec'),
+        ];
+        return $months[$month] ?? date('M', mktime(0, 0, 0, $month, 1));
+    }
+
     public function getWeeklyOverview($year = null, $userId = null)
     {
         if ($year === null) {
