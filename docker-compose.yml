@@ -11,12 +11,17 @@ services:
       - db
     networks:
       - app-network
+    secrets:
+      - db_host
+      - db_name
+      - db_username
+      - db_password
 
   db:
     image: mysql:8.0
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: savings_db
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
+      MYSQL_DATABASE_FILE: /run/secrets/db_name
     ports:
       - "3306:3306"
     volumes:
@@ -24,6 +29,21 @@ services:
       - db-data:/var/lib/mysql
     networks:
       - app-network
+    secrets:
+      - db_root_password
+      - db_name
+
+secrets:
+  db_host:
+    file: ./secrets/db_host.txt
+  db_name:
+    file: ./secrets/db_name.txt
+  db_username:
+    file: ./secrets/db_username.txt
+  db_password:
+    file: ./secrets/db_password.txt
+  db_root_password:
+    file: ./secrets/db_root_password.txt
 
 networks:
   app-network:
