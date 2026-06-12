@@ -7,11 +7,9 @@
         <h2 class="text-lg md:text-xl font-semibold"><?= Locale::get('total_savings') ?>: $<?= number_format($total, 2) ?></h2>
     </div>
 
-    <?php if (Auth::isAdmin()): ?>
     <div class="flex flex-wrap gap-3 mb-4 md:mb-6">
         <a href="index.php?action=create" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition duration-200"><?= Locale::get('add_new_saving') ?></a>
     </div>
-    <?php endif; ?>
 
     <form method="GET" action="index.php" class="mb-4 md:mb-6">
         <input type="hidden" name="action" value="payments">
@@ -59,8 +57,8 @@
                     <th class="p-3 text-left text-sm md:text-base font-semibold text-gray-700"><?= Locale::get('amount') ?></th>
                     <th class="p-3 text-left text-sm md:text-base font-semibold text-gray-700 hidden sm:table-cell"><?= Locale::get('payment_method') ?></th>
                     <th class="p-3 text-left text-sm md:text-base font-semibold text-gray-700"><?= Locale::get('status') ?></th>
-                    <th class="p-3 text-left text-sm md:text-base font-semibold text-gray-700 hidden lg:table-cell"><?= Locale::get('attachment') ?></th>
-                    <th class="p-3 text-left text-sm md:text-base font-semibold text-gray-700 hidden md:table-cell"><?= Locale::get('date') ?></th>
+                    <th class="p-3 text-left text-sm md:text-base font-semibold text-gray-700"><?= Locale::get('attachment') ?></th>
+                    <th class="p-3 text-left text-sm md:text-base font-semibold text-gray-700"><?= Locale::get('date') ?></th>
                     <?php if (Auth::isAdmin()): ?>
                     <th class="p-3 text-left text-sm md:text-base font-semibold text-gray-700"><?= Locale::get('actions') ?></th>
                     <?php endif; ?>
@@ -94,7 +92,7 @@
                             <span class="text-gray-400">-</span>
                         <?php endif; ?>
                     </td>
-                    <td class="p-3 text-sm md:text-base"><?= htmlspecialchars($row['description']) ?></td>
+                    <td class="p-3 text-sm md:text-base"><?= htmlspecialchars($row['description'] ?? '') ?></td>
                     <td class="p-3 text-sm md:text-base font-medium">$<?= number_format($row['amount'], 2) ?></td>
                     <td class="p-3 text-sm md:text-base hidden sm:table-cell"><?= Locale::get($row['payment_method']) ?></td>
                     <td class="p-3 text-sm md:text-base">
@@ -109,7 +107,7 @@
                             <?= Locale::get($row['status']) ?>
                         </span>
                     </td>
-                    <td class="p-3 text-sm md:text-base hidden lg:table-cell">
+                    <td class="p-3 text-sm md:text-base">
                         <?php if (!empty($row['attachment'])): ?>
                             <?php
                             $ext = strtolower(pathinfo($row['attachment'], PATHINFO_EXTENSION));
@@ -118,19 +116,24 @@
                             $type = $isImage ? 'image' : ($isPdf ? 'pdf' : 'file');
                             $icon = $isImage ? '🖼️' : '📎';
                             ?>
-                            <button type="button" onclick="openModal('uploads/<?= htmlspecialchars($row['attachment']) ?>', '<?= htmlspecialchars($row['name']) ?> - Attachment', '<?= $type ?>')" class="text-blue-500 hover:underline cursor-pointer">
+                            <button type="button" onclick="openModal('uploads/<?= htmlspecialchars($row['attachment'] ?? '') ?>', '<?= htmlspecialchars($row['description'] ?? '') ?> - <?= Locale::get('attachment') ?>', '<?= $type ?>')" class="text-blue-500 hover:underline cursor-pointer">
                                 <?= $icon ?> <?= Locale::get('view') ?>
                             </button>
                         <?php else: ?>
                             <span class="text-gray-400">-</span>
                         <?php endif; ?>
                     </td>
-                    <td class="p-3 text-sm md:text-base hidden md:table-cell"><?= date('M d, Y', strtotime($row['created_at'])) ?></td>
+                    <td class="p-3 text-sm md:text-base"><?= date('M d, Y', strtotime($row['created_at'])) ?></td>
                     <?php if (Auth::isAdmin()): ?>
                     <td class="p-3 text-sm md:text-base">
                         <div class="flex flex-wrap gap-2">
-                            <a href="index.php?action=edit&id=<?= $row['id'] ?>" class="bg-amber-400 hover:bg-amber-500 text-black font-medium py-1 px-3 rounded transition duration-200 text-sm"><?= Locale::get('edit') ?></a>
-                            <a href="index.php?action=delete&id=<?= $row['id'] ?>" class="bg-red-500 hover:bg-red-600 text-white font-medium py-1 px-3 rounded transition duration-200 text-sm" onclick="return confirm('<?= Locale::get('are_you_sure') ?>')"><?= Locale::get('delete') ?></a>
+                            <?php if ($row['status'] === 'unverified'): ?>
+                                <a href="index.php?action=edit&id=<?= $row['id'] ?>" class="bg-amber-400 hover:bg-amber-500 text-black font-medium py-1 px-3 rounded transition duration-200 text-sm"><?= Locale::get('edit') ?></a>
+                                <a href="index.php?action=verify&id=<?= $row['id'] ?>" class="bg-green-500 hover:bg-green-600 text-white font-medium py-1 px-3 rounded transition duration-200 text-sm" onclick="return confirm('<?= Locale::get('are_you_sure') ?>')"><?= Locale::get('verify') ?></a>
+                                <a href="index.php?action=delete&id=<?= $row['id'] ?>" class="bg-red-500 hover:bg-red-600 text-white font-medium py-1 px-3 rounded transition duration-200 text-sm" onclick="return confirm('<?= Locale::get('are_you_sure') ?>')"><?= Locale::get('delete') ?></a>
+                            <?php else: ?>
+                                <span class="text-gray-400 text-sm"><?= Locale::get('verified') ?></span>
+                            <?php endif; ?>
                         </div>
                     </td>
                     <?php endif; ?>

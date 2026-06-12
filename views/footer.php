@@ -9,7 +9,7 @@
 <div id="attachmentModal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-40 p-4" onclick="closeModal(event)">
     <div class="bg-white rounded-lg max-w-4xl max-h-[90vh] w-full overflow-hidden relative">
         <div class="flex justify-between items-center p-4 border-b">
-            <h3 id="modalTitle" class="text-lg font-semibold text-gray-800">Attachment</h3>
+            <h3 id="modalTitle" class="text-lg font-semibold text-gray-800"><?= Locale::get('attachment') ?></h3>
             <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700 text-2xl leading-none">&times;</button>
         </div>
         <div id="modalContent" class="p-4 overflow-auto max-h-[70vh] flex items-center justify-center">
@@ -88,7 +88,7 @@ function openModal(url, title, type) {
     const content = document.getElementById('modalContent');
     const modalTitle = document.getElementById('modalTitle');
     
-    modalTitle.textContent = title || 'Attachment';
+    modalTitle.textContent = title || '<?= Locale::get('attachment') ?>';
     content.innerHTML = '';
     
     if (type === 'image') {
@@ -206,9 +206,9 @@ function initUploadProgress(inputId, progressId) {
         const file = e.target.files[0];
         if (!file) return;
         
-        const maxSize = 5 * 1024 * 1024;
+        const maxSize = 50 * 1024 * 1024;
         if (file.size > maxSize) {
-            showToast('error', 'File too large. Maximum size is 5MB.');
+            showToast('error', '<?= Locale::get('file_too_large') ?>');
             input.value = '';
             return;
         }

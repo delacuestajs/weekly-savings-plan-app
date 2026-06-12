@@ -89,9 +89,9 @@ function translatedDate($dateStr) {
                         echo implode(' + ', $parts);
                         ?>
                     <?php elseif ($data['multiplier'] > 1): ?>
-                        52 <?= Locale::get('week') ?>s &times; week# &times; $1,000 &times; <?= $data['multiplier'] ?>
+                        52 <?= Locale::get('week') ?>s &times; (<?= Locale::get('week_number') ?> &times; $1,000) &times; <?= $data['multiplier'] ?>
                     <?php else: ?>
-                        52 <?= Locale::get('week') ?>s &times; week number &times; $1,000
+                        52 <?= Locale::get('week') ?>s &times; (<?= Locale::get('week_number') ?> &times; $1,000)
                     <?php endif; ?>
                 </p>
             </div>

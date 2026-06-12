@@ -131,11 +131,9 @@ if ($module === 'user') {
     
     switch ($action) {
         case 'create':
-            Auth::requireAdmin();
             $controller->create();
             break;
         case 'store':
-            Auth::requireAdmin();
             $controller->store();
             break;
         case 'edit':
@@ -149,6 +147,10 @@ if ($module === 'user') {
         case 'delete':
             Auth::requireAdmin();
             $controller->delete($id);
+            break;
+        case 'verify':
+            Auth::requireAdmin();
+            $controller->verify($id);
             break;
         case 'payments':
             $controller->index();

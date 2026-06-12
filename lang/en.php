@@ -21,9 +21,14 @@ return [
     'paid' => 'Paid',
     'unverified' => 'Unverified',
     'verified' => 'Verified',
+    'verify' => 'Verify',
+    'payment_verified' => 'Payment verified successfully',
+    'cannot_edit_verified' => 'Verified payments cannot be edited',
+    'pending' => 'Pending',
     'partial' => 'Partial',
     'unpaid' => 'Unpaid',
     'week' => 'Week',
+    'week_number' => 'week number',
     'now' => 'Now',
     'current' => 'Current',
     'multiplier' => 'Multiplier',
@@ -41,7 +46,7 @@ return [
     
     'savings_payments' => 'Savings Payments',
     'total_savings' => 'Total Savings',
-    'add_new_saving' => 'Add New Saving',
+    'add_new_saving' => 'Add New Payment',
     
     'id' => 'ID',
     'user' => 'User',
@@ -73,7 +78,7 @@ return [
     'current_attachment' => 'Current attachment:',
     'no_attachment' => 'No attachment uploaded yet.',
     'remove_attachment' => 'Remove current attachment',
-    'allowed_files' => 'JPG, PNG, GIF, WebP, PDF, DOC, DOCX (max 5MB)',
+    'allowed_files' => 'JPG, PNG, GIF, WebP, PDF, DOC, DOCX (max 50MB)',
     
     'add_new_user' => 'Add New User',
     'manage_users' => 'Manage Users',
@@ -91,7 +96,7 @@ return [
     'current_picture' => 'Current picture:',
     'zoom' => 'Zoom',
     'remove' => 'Remove',
-    'allowed_image_types' => 'JPG, PNG, GIF, WebP (max 5MB)',
+    'allowed_image_types' => 'JPG, PNG, GIF, WebP (max 50MB)',
     
     'user_required' => 'Please select a user',
     'username_taken' => 'Username is already taken',
@@ -149,6 +154,8 @@ return [
     'error_updating' => 'Error updating',
     'error_deleting' => 'Error deleting',
     'invalid_file' => 'Invalid file type or file too large',
+    'file_too_large' => 'File too large. Maximum size is 50MB.',
+    'upload_error' => 'Error uploading file',
     
     'january' => 'January',
     'february' => 'February',

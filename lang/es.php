@@ -21,9 +21,14 @@ return [
     'paid' => 'Pagado',
     'unverified' => 'No verificado',
     'verified' => 'Verificado',
+    'verify' => 'Verificar',
+    'payment_verified' => 'Pago verificado exitosamente',
+    'cannot_edit_verified' => 'Los pagos verificados no pueden ser editados',
+    'pending' => 'Pendiente',
     'partial' => 'Parcial',
     'unpaid' => 'No pagado',
     'week' => 'Semana',
+    'week_number' => 'número de semana',
     'now' => 'Ahora',
     'current' => 'Actual',
     'multiplier' => 'Multiplicador',
@@ -41,7 +46,7 @@ return [
     
     'savings_payments' => 'Pagos de Ahorro',
     'total_savings' => 'Total de Ahorros',
-    'add_new_saving' => 'Agregar Nuevo Ahorro',
+    'add_new_saving' => 'Agregar Nuevo Pago',
     
     'id' => 'ID',
     'user' => 'Usuario',
@@ -73,7 +78,7 @@ return [
     'current_attachment' => 'Adjunto actual:',
     'no_attachment' => 'No se ha subido ningún adjunto.',
     'remove_attachment' => 'Eliminar adjunto actual',
-    'allowed_files' => 'JPG, PNG, GIF, WebP, PDF, DOC, DOCX (máx 5MB)',
+    'allowed_files' => 'JPG, PNG, GIF, WebP, PDF, DOC, DOCX (máx 50MB)',
     
     'add_new_user' => 'Agregar Nuevo Usuario',
     'manage_users' => 'Gestionar Usuarios',
@@ -91,7 +96,7 @@ return [
     'current_picture' => 'Foto actual:',
     'zoom' => 'Ampliar',
     'remove' => 'Eliminar',
-    'allowed_image_types' => 'JPG, PNG, GIF, WebP (máx 5MB)',
+    'allowed_image_types' => 'JPG, PNG, GIF, WebP (máx 50MB)',
     
     'user_required' => 'Por favor seleccione un usuario',
     'username_taken' => 'El nombre de usuario ya está en uso',
@@ -149,6 +154,8 @@ return [
     'error_updating' => 'Error al actualizar',
     'error_deleting' => 'Error al eliminar',
     'invalid_file' => 'Tipo de archivo inválido o archivo demasiado grande',
+    'file_too_large' => 'Archivo demasiado grande. El tamaño máximo es 50MB.',
+    'upload_error' => 'Error al subir archivo',
     
     'january' => 'Enero',
     'february' => 'Febrero',

@@ -91,7 +91,7 @@ class Saving
             return false;
         }
 
-        $maxSize = 5 * 1024 * 1024;
+        $maxSize = 50 * 1024 * 1024;
         if ($file['size'] > $maxSize) {
             return false;
         }

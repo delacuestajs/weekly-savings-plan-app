@@ -7,12 +7,15 @@
         <div class="mb-4">
             <label for="user_id" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('user') ?> *</label>
             <div class="flex items-center gap-3">
-                <select id="user_id" name="user_id" onchange="updateUserBadge(this)" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <select id="user_id" name="user_id" onchange="updateUserBadge(this)" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" <?= Auth::isAdmin() ? '' : 'disabled' ?>>
                     <option value=""><?= Locale::get('select_user') ?></option>
                 <?php foreach ($users as $userRow): ?>
-                    <option value="<?= $userRow['id'] ?>"><?= htmlspecialchars($userRow['firstname'] . ' ' . $userRow['lastname']) ?><?= !empty($userRow['nickname']) ? ' (' . htmlspecialchars($userRow['nickname']) . ')' : '' ?></option>
+                    <option value="<?= $userRow['id'] ?>" <?= (!Auth::isAdmin() && $userRow['id'] == Auth::getUserId()) ? 'selected' : '' ?>><?= htmlspecialchars($userRow['firstname'] . ' ' . $userRow['lastname']) ?><?= !empty($userRow['username']) ? ' (' . htmlspecialchars($userRow['username']) . ')' : '' ?></option>
                 <?php endforeach; ?>
                 </select>
+                <?php if (!Auth::isAdmin()): ?>
+                    <input type="hidden" name="user_id" value="<?= Auth::getUserId() ?>">
+                <?php endif; ?>
                 <div id="userBadge" class="w-12 h-12 rounded-full flex items-center justify-center font-bold text-white text-lg flex-shrink-0 bg-gray-300"></div>
             </div>
             <input type="hidden" id="usersData" value='<?= htmlspecialchars(json_encode($usersData), ENT_QUOTES) ?>'>
@@ -60,8 +63,8 @@
         </script>
 
         <div class="mb-4">
-            <label for="created_at" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('date') ?></label>
-            <input type="datetime-local" id="created_at" name="created_at" value="<?= date('Y-m-d\TH:i') ?>" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <label for="created_at" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('date') ?> *</label>
+            <input type="date" id="created_at" name="created_at" value="<?= date('Y-m-d') ?>" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
         </div>
 
         <div class="mb-4">
@@ -70,24 +73,16 @@
         </div>
 
         <div class="mb-4">
-            <label for="amount" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('amount') ?></label>
+            <label for="amount" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('amount') ?> *</label>
             <input type="number" id="amount" name="amount" step="0.01" min="0" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
         </div>
 
         <div class="mb-4">
-            <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('payment_method') ?></label>
+            <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('payment_method') ?> *</label>
             <select id="payment_method" name="payment_method" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 <option value=""><?= Locale::get('select_method') ?></option>
                 <option value="cash"><?= Locale::get('cash') ?></option>
                 <option value="bank_transfer"><?= Locale::get('bank_transfer') ?></option>
-            </select>
-        </div>
-
-        <div class="mb-4">
-            <label for="status" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('status') ?></label>
-            <select id="status" name="status" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                <option value="unverified"><?= Locale::get('unverified') ?></option>
-                <option value="verified"><?= Locale::get('verified') ?></option>
             </select>
         </div>
 

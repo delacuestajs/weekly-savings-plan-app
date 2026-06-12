@@ -29,40 +29,6 @@
         </div>
 
         <div class="mb-4">
-            <label for="picture" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('picture') ?></label>
-            <?php if (!empty($user['picture'])): ?>
-                <div class="mb-2 p-3 bg-gray-50 rounded-lg">
-                    <p class="text-sm text-gray-600 mb-2"><?= Locale::get('current_picture') ?></p>
-                    <div class="flex items-center gap-4">
-                        <img src="uploads/<?= htmlspecialchars($user['picture']) ?>" alt="Picture" class="w-20 h-20 rounded-full object-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-                        <div class="w-20 h-20 rounded-full bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-white font-bold text-xl" style="display:none;">
-                            <?= strtoupper(substr($user['firstname'], 0, 1) . substr($user['lastname'], 0, 1)) ?>
-                        </div>
-                        <div class="flex flex-col gap-2">
-                            <button type="button" onclick="openZoomModal('uploads/<?= htmlspecialchars($user['picture']) ?>', '<?= Locale::get('current_picture') ?>')" class="text-blue-500 hover:text-blue-700 text-sm flex items-center gap-1">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path></svg>
-                                <?= Locale::get('zoom') ?>
-                            </button>
-                            <label class="flex items-center text-sm text-red-600">
-                                <input type="checkbox" name="remove_picture" value="1" class="mr-2 rounded">
-                                <?= Locale::get('remove') ?>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            <?php endif; ?>
-            <input type="file" id="picture" name="picture" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-            <div id="picture_progress" class="mt-2 hidden">
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div class="progress-bar bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
-                </div>
-                <p class="progress-text text-xs text-gray-500 mt-1">0%</p>
-            </div>
-            <img id="picture_preview" src="" alt="Preview" class="mt-2 w-20 h-20 rounded-full object-cover hidden">
-            <p class="mt-1 text-sm text-gray-500"><?= Locale::get('allowed_image_types') ?></p>
-        </div>
-
-        <div class="mb-4">
             <label for="comments" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('comments') ?></label>
             <textarea id="comments" name="comments" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"><?= htmlspecialchars($user['comments'] ?? '') ?></textarea>
         </div>

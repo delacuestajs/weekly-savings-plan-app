@@ -34,7 +34,21 @@
                 </button>
             </div>
         </form>
+        
+        <div class="text-center">
+            <select id="langSwitch" onchange="switchLanguage(this.value)" class="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-lg transition appearance-none pr-8 cursor-pointer text-sm font-medium">
+                <?php foreach (Locale::getAvailableLanguages() as $code => $name): ?>
+                    <option value="<?= $code ?>" <?= Locale::getCurrentLanguage() === $code ? 'selected' : '' ?>><?= $name ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
     </div>
 </div>
+
+<script>
+function switchLanguage(lang) {
+    window.location.href = 'index.php?lang=' + lang;
+}
+</script>
 
 <?php require_once __DIR__ . '/../views/footer.php'; ?>

@@ -85,18 +85,26 @@ class SavingController
         $this->saving->description = $_POST['description'];
         $this->saving->amount = $_POST['amount'];
         $this->saving->payment_method = $_POST['payment_method'];
-        $this->saving->status = $_POST['status'];
+        $this->saving->status = 'unverified';
         $this->saving->notes = $_POST['notes'];
-        $this->saving->created_at = !empty($_POST['created_at']) ? $_POST['created_at'] : date('Y-m-d H:i:s');
+        $this->saving->created_at = !empty($_POST['created_at']) ? $_POST['created_at'] . ' 00:00:00' : date('Y-m-d H:i:s');
 
         $this->saving->attachment = null;
-        if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
-            $uploaded = $this->saving->uploadAttachment($_FILES['attachment']);
-            if ($uploaded === false) {
-                header('Location: index.php?action=create&toast=error&message=' . urlencode(Locale::get('invalid_file')));
+        if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] !== UPLOAD_ERR_NO_FILE) {
+            if ($_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
+                $uploaded = $this->saving->uploadAttachment($_FILES['attachment']);
+                if ($uploaded === false) {
+                    header('Location: index.php?action=create&toast=error&message=' . urlencode(Locale::get('invalid_file')));
+                    exit;
+                }
+                $this->saving->attachment = $uploaded;
+            } elseif ($_FILES['attachment']['error'] === UPLOAD_ERR_INI_SIZE || $_FILES['attachment']['error'] === UPLOAD_ERR_FORM_SIZE) {
+                header('Location: index.php?action=create&toast=error&message=' . urlencode(Locale::get('file_too_large')));
+                exit;
+            } else {
+                header('Location: index.php?action=create&toast=error&message=' . urlencode(Locale::get('upload_error')));
                 exit;
             }
-            $this->saving->attachment = $uploaded;
         }
 
         if ($this->saving->create()) {
@@ -110,6 +118,12 @@ class SavingController
     public function edit($id)
     {
         $saving = $this->saving->getById($id);
+        
+        if ($saving['status'] === 'verified') {
+            header('Location: index.php?action=payments&toast=error&message=' . urlencode(Locale::get('cannot_edit_verified')));
+            exit;
+        }
+        
         $stmt = $this->user->getAll();
         $usersArray = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $usersData = [];
@@ -141,17 +155,25 @@ class SavingController
         $existingSaving = $this->saving->getById($id);
         $this->saving->attachment = $existingSaving['attachment'] ?? null;
 
-        if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
-            if ($this->saving->attachment) {
-                $this->saving->deleteAttachment($this->saving->attachment);
-            }
+        if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] !== UPLOAD_ERR_NO_FILE) {
+            if ($_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
+                if ($this->saving->attachment) {
+                    $this->saving->deleteAttachment($this->saving->attachment);
+                }
 
-            $uploaded = $this->saving->uploadAttachment($_FILES['attachment']);
-            if ($uploaded === false) {
-                header('Location: index.php?action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('invalid_file')));
+                $uploaded = $this->saving->uploadAttachment($_FILES['attachment']);
+                if ($uploaded === false) {
+                    header('Location: index.php?action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('invalid_file')));
+                    exit;
+                }
+                $this->saving->attachment = $uploaded;
+            } elseif ($_FILES['attachment']['error'] === UPLOAD_ERR_INI_SIZE || $_FILES['attachment']['error'] === UPLOAD_ERR_FORM_SIZE) {
+                header('Location: index.php?action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('file_too_large')));
+                exit;
+            } else {
+                header('Location: index.php?action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('upload_error')));
                 exit;
             }
-            $this->saving->attachment = $uploaded;
         }
 
         if (isset($_POST['remove_attachment']) && $_POST['remove_attachment'] === '1') {
@@ -166,6 +188,32 @@ class SavingController
             exit;
         }
         header('Location: index.php?action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('error_updating')));
+        exit;
+    }
+
+    public function verify($id)
+    {
+        $saving = $this->saving->getById($id);
+        if (!$saving) {
+            header('Location: index.php?action=payments&toast=error&message=' . urlencode(Locale::get('error_updating')));
+            exit;
+        }
+        
+        $this->saving->id = $id;
+        $this->saving->user_id = $saving['user_id'];
+        $this->saving->description = $saving['description'];
+        $this->saving->amount = $saving['amount'];
+        $this->saving->payment_method = $saving['payment_method'];
+        $this->saving->status = 'verified';
+        $this->saving->notes = $saving['notes'];
+        $this->saving->attachment = $saving['attachment'];
+        $this->saving->created_at = $saving['created_at'];
+        
+        if ($this->saving->update()) {
+            header('Location: index.php?action=payments&toast=success&message=' . urlencode(Locale::get('payment_verified')));
+            exit;
+        }
+        header('Location: index.php?action=payments&toast=error&message=' . urlencode(Locale::get('error_updating')));
         exit;
     }
 

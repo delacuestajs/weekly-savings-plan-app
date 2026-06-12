@@ -6,57 +6,67 @@ Auth::startSession();
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Savings Payment System</title>
+    <meta name="description" content="Track weekly savings payments for individuals or groups">
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Savings">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="apple-touch-icon" href="/favicon.svg">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100">
 
 <div id="mainContent">
     <header class="bg-white shadow-sm sticky top-0 z-30">
-        <div class="flex items-center justify-between px-4 py-3">
-            <div class="flex items-center gap-3">
+        <div class="px-4 py-3">
+            <div class="flex items-center justify-between">
                 <h1 class="text-xl font-bold text-gray-800"><?= Locale::get('app_name') ?></h1>
-            </div>
-            <div class="flex items-center gap-2">
                 <?php if (Auth::isLoggedIn()): ?>
+                <div class="flex items-center gap-2">
                     <span class="text-sm text-gray-600"><?= Auth::getUserName() ?></span>
-                    
-                    <a href="index.php?action=weekly" class="bg-teal-500 hover:bg-teal-600 text-white p-2 rounded-lg transition" title="<?= Locale::get('weekly_plan') ?>">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    <div class="relative">
+                        <select id="langSwitch" onchange="switchLanguage(this.value)" class="bg-gray-600 hover:bg-gray-700 text-white p-1 rounded-lg transition appearance-none pr-7 cursor-pointer text-xs font-medium">
+                            <?php foreach (Locale::getAvailableLanguages() as $code => $name): ?>
+                                <option value="<?= $code ?>" <?= Locale::getCurrentLanguage() === $code ? 'selected' : '' ?>><?= $name ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+                <?php endif; ?>
+            </div>
+            <?php if (Auth::isLoggedIn()): ?>
+            <div class="flex items-center justify-end gap-2 mt-2">
+                <a href="index.php?action=weekly" class="bg-teal-500 hover:bg-teal-600 text-white p-2 rounded-lg transition" title="<?= Locale::get('weekly_plan') ?>">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </a>
+                <a href="index.php?action=payments" class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg transition" title="<?= Locale::get('payments') ?>">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                </a>
+                <a href="index.php?action=create" class="bg-green-500 hover:bg-green-600 text-white p-2 rounded-lg transition" title="<?= Locale::get('add_saving') ?>">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                </a>
+                <?php if (Auth::isAdmin()): ?>
+                    <a href="index.php?module=user" class="bg-purple-500 hover:bg-purple-600 text-white p-2 rounded-lg transition" title="<?= Locale::get('users') ?>">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                     </a>
-                    <a href="index.php?action=payments" class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg transition" title="<?= Locale::get('payments') ?>">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                    </a>
-                    <?php if (Auth::isAdmin()): ?>
-                        <a href="index.php?action=create" class="bg-green-500 hover:bg-green-600 text-white p-2 rounded-lg transition" title="<?= Locale::get('add_saving') ?>">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                        </a>
-                        <a href="index.php?module=user" class="bg-purple-500 hover:bg-purple-600 text-white p-2 rounded-lg transition" title="<?= Locale::get('users') ?>">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                        </a>
-                        <a href="index.php?module=activity" class="bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-lg transition" title="<?= Locale::get('activities') ?>">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
-                        </a>
-                    <?php endif; ?>
-                    
-                    <button onclick="openPasswordModal(false)" class="bg-gray-500 hover:bg-gray-600 text-white p-2 rounded-lg transition" title="<?= Locale::get('change_password') ?>">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
-                    </button>
-                    
-                    <a href="index.php?action=logout" class="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg transition" title="<?= Locale::get('logout') ?>">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    <a href="index.php?module=activity" class="bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-lg transition" title="<?= Locale::get('activities') ?>">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
                     </a>
                 <?php endif; ?>
                 
-                <div class="relative ml-1">
-                    <select id="langSwitch" onchange="switchLanguage(this.value)" class="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-lg transition appearance-none pr-8 cursor-pointer text-sm font-medium">
-                        <?php foreach (Locale::getAvailableLanguages() as $code => $name): ?>
-                            <option value="<?= $code ?>" <?= Locale::getCurrentLanguage() === $code ? 'selected' : '' ?>><?= $name ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
+                <button onclick="openPasswordModal(false)" class="bg-gray-500 hover:bg-gray-600 text-white p-2 rounded-lg transition" title="<?= Locale::get('change_password') ?>">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+                </button>
+                
+                <a href="index.php?action=logout" class="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg transition" title="<?= Locale::get('logout') ?>">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                </a>
             </div>
+            <?php endif; ?>
         </div>
     </header>
 
