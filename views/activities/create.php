@@ -34,7 +34,7 @@
         
         <div class="flex flex-wrap gap-3 pt-4">
             <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-6 rounded-lg transition duration-200"><?= Locale::get('save') ?></button>
-            <a href="index.php?module=activity" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-6 rounded-lg transition duration-200"><?= Locale::get('cancel') ?></a>
+            <a href="javascript:history.back()" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-6 rounded-lg transition duration-200"><?= Locale::get('cancel') ?></a>
         </div>
     </form>
 </div>

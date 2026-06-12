@@ -7,15 +7,18 @@
         <h2 class="text-lg md:text-xl font-semibold"><?= Locale::get('total_savings') ?>: $<?= number_format($total, 2) ?></h2>
     </div>
 
+    <?php if (Auth::isAdmin()): ?>
     <div class="flex flex-wrap gap-3 mb-4 md:mb-6">
         <a href="index.php?action=create" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition duration-200"><?= Locale::get('add_new_saving') ?></a>
     </div>
+    <?php endif; ?>
 
     <form method="GET" action="index.php" class="mb-4 md:mb-6">
         <input type="hidden" name="action" value="payments">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div>
                 <label for="filter_user" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('user') ?></label>
+                <?php if (Auth::isAdmin()): ?>
                 <select id="filter_user" name="user_id" onchange="this.form.submit()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     <option value=""><?= Locale::get('all_users') ?></option>
                     <?php foreach ($usersList as $userRow): ?>
@@ -24,6 +27,9 @@
                         </option>
                     <?php endforeach; ?>
                 </select>
+                <?php else: ?>
+                <input type="text" value="<?= htmlspecialchars(Auth::getUserName()) ?>" readonly class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600">
+                <?php endif; ?>
             </div>
             <div>
                 <label for="filter_method" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('payment_method') ?></label>
@@ -31,9 +37,6 @@
                     <option value=""><?= Locale::get('all_methods') ?></option>
                     <option value="cash" <?= ($filters['payment_method'] === 'cash') ? 'selected' : '' ?>><?= Locale::get('cash') ?></option>
                     <option value="bank_transfer" <?= ($filters['payment_method'] === 'bank_transfer') ? 'selected' : '' ?>><?= Locale::get('bank_transfer') ?></option>
-                    <option value="credit_card" <?= ($filters['payment_method'] === 'credit_card') ? 'selected' : '' ?>><?= Locale::get('credit_card') ?></option>
-                    <option value="debit_card" <?= ($filters['payment_method'] === 'debit_card') ? 'selected' : '' ?>><?= Locale::get('debit_card') ?></option>
-                    <option value="check" <?= ($filters['payment_method'] === 'check') ? 'selected' : '' ?>><?= Locale::get('check') ?></option>
                 </select>
             </div>
             <div>
@@ -58,7 +61,9 @@
                     <th class="p-3 text-left text-sm md:text-base font-semibold text-gray-700"><?= Locale::get('status') ?></th>
                     <th class="p-3 text-left text-sm md:text-base font-semibold text-gray-700 hidden lg:table-cell"><?= Locale::get('attachment') ?></th>
                     <th class="p-3 text-left text-sm md:text-base font-semibold text-gray-700 hidden md:table-cell"><?= Locale::get('date') ?></th>
+                    <?php if (Auth::isAdmin()): ?>
                     <th class="p-3 text-left text-sm md:text-base font-semibold text-gray-700"><?= Locale::get('actions') ?></th>
+                    <?php endif; ?>
                 </tr>
             </thead>
             <tbody>
@@ -80,8 +85,8 @@
                                 <?php endif; ?>
                                 <div>
                                     <span class="text-purple-600 font-medium"><?= htmlspecialchars($row['firstname'] . ' ' . $row['lastname']) ?></span>
-                                    <?php if (!empty($row['nickname'])): ?>
-                                        <br><span class="text-gray-500 text-xs">(<?= htmlspecialchars($row['nickname']) ?>)</span>
+                                    <?php if (!empty($row['username'])): ?>
+                                        <br><span class="text-gray-500 text-xs">(<?= htmlspecialchars($row['username']) ?>)</span>
                                     <?php endif; ?>
                                 </div>
                             </div>
@@ -89,15 +94,14 @@
                             <span class="text-gray-400">-</span>
                         <?php endif; ?>
                     </td>
-                    <td class="p-3 text-sm md:text-base"><?= htmlspecialchars($row['name']) ?></td>
+                    <td class="p-3 text-sm md:text-base"><?= htmlspecialchars($row['description']) ?></td>
                     <td class="p-3 text-sm md:text-base font-medium">$<?= number_format($row['amount'], 2) ?></td>
                     <td class="p-3 text-sm md:text-base hidden sm:table-cell"><?= Locale::get($row['payment_method']) ?></td>
                     <td class="p-3 text-sm md:text-base">
                         <?php
                         $statusClasses = [
-                            'pending' => 'bg-orange-100 text-orange-800',
-                            'completed' => 'bg-green-100 text-green-800',
-                            'failed' => 'bg-red-100 text-red-800'
+                            'unverified' => 'bg-orange-100 text-orange-800',
+                            'verified' => 'bg-green-100 text-green-800'
                         ];
                         $statusClass = $statusClasses[$row['status']] ?? 'bg-gray-100 text-gray-800';
                         ?>
@@ -122,12 +126,14 @@
                         <?php endif; ?>
                     </td>
                     <td class="p-3 text-sm md:text-base hidden md:table-cell"><?= date('M d, Y', strtotime($row['created_at'])) ?></td>
+                    <?php if (Auth::isAdmin()): ?>
                     <td class="p-3 text-sm md:text-base">
                         <div class="flex flex-wrap gap-2">
                             <a href="index.php?action=edit&id=<?= $row['id'] ?>" class="bg-amber-400 hover:bg-amber-500 text-black font-medium py-1 px-3 rounded transition duration-200 text-sm"><?= Locale::get('edit') ?></a>
                             <a href="index.php?action=delete&id=<?= $row['id'] ?>" class="bg-red-500 hover:bg-red-600 text-white font-medium py-1 px-3 rounded transition duration-200 text-sm" onclick="return confirm('<?= Locale::get('are_you_sure') ?>')"><?= Locale::get('delete') ?></a>
                         </div>
                     </td>
+                    <?php endif; ?>
                 </tr>
                 <?php endwhile; ?>
             </tbody>

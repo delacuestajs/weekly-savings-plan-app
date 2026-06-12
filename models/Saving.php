@@ -9,11 +9,11 @@ class Saving
 
     public $id;
     public $user_id;
-    public $name;
+    public $description;
     public $amount;
     public $payment_method;
     public $status;
-    public $description;
+    public $notes;
     public $attachment;
     public $created_at;
     public $updated_at;
@@ -28,7 +28,7 @@ class Saving
 
     public function getAll($filters = [])
     {
-        $query = "SELECT s.*, u.firstname, u.lastname, u.nickname, u.picture 
+        $query = "SELECT s.*, u.firstname, u.lastname, u.username, u.picture 
                   FROM {$this->table} s 
                   LEFT JOIN users u ON s.user_id = u.id AND u.status = 1 AND u.deleted_at IS NULL
                   WHERE s.is_active = 1 AND s.deleted_at IS NULL";
@@ -64,7 +64,7 @@ class Saving
 
     public function getById($id)
     {
-        $query = "SELECT s.*, u.firstname, u.lastname, u.nickname, u.picture 
+        $query = "SELECT s.*, u.firstname, u.lastname, u.username, u.picture 
                   FROM {$this->table} s 
                   LEFT JOIN users u ON s.user_id = u.id AND u.status = 1 AND u.deleted_at IS NULL
                   WHERE s.id = :id AND s.is_active = 1 AND s.deleted_at IS NULL LIMIT 1";
@@ -120,20 +120,20 @@ class Saving
 
     public function create()
     {
-        $query = "INSERT INTO {$this->table} (user_id, name, amount, payment_method, status, description, attachment, created_at) 
-                  VALUES (:user_id, :name, :amount, :payment_method, :status, :description, :attachment, :created_at)";
+        $query = "INSERT INTO {$this->table} (user_id, description, amount, payment_method, status, notes, attachment, created_at) 
+                  VALUES (:user_id, :description, :amount, :payment_method, :status, :notes, :attachment, :created_at)";
 
         $stmt = $this->conn->prepare($query);
 
-        $this->name = htmlspecialchars(strip_tags($this->name));
         $this->description = htmlspecialchars(strip_tags($this->description));
+        $this->notes = htmlspecialchars(strip_tags($this->notes));
 
         $stmt->bindParam(':user_id', $this->user_id);
-        $stmt->bindParam(':name', $this->name);
+        $stmt->bindParam(':description', $this->description);
         $stmt->bindParam(':amount', $this->amount);
         $stmt->bindParam(':payment_method', $this->payment_method);
         $stmt->bindParam(':status', $this->status);
-        $stmt->bindParam(':description', $this->description);
+        $stmt->bindParam(':notes', $this->notes);
         $stmt->bindParam(':attachment', $this->attachment);
         $stmt->bindParam(':created_at', $this->created_at);
 
@@ -146,21 +146,21 @@ class Saving
     public function update()
     {
         $query = "UPDATE {$this->table} 
-                  SET user_id = :user_id, name = :name, amount = :amount, payment_method = :payment_method, 
-                      status = :status, description = :description, attachment = :attachment, created_at = :created_at
+                  SET user_id = :user_id, description = :description, amount = :amount, payment_method = :payment_method, 
+                      status = :status, notes = :notes, attachment = :attachment, created_at = :created_at
                   WHERE id = :id";
 
         $stmt = $this->conn->prepare($query);
 
-        $this->name = htmlspecialchars(strip_tags($this->name));
         $this->description = htmlspecialchars(strip_tags($this->description));
+        $this->notes = htmlspecialchars(strip_tags($this->notes));
 
         $stmt->bindParam(':user_id', $this->user_id);
-        $stmt->bindParam(':name', $this->name);
+        $stmt->bindParam(':description', $this->description);
         $stmt->bindParam(':amount', $this->amount);
         $stmt->bindParam(':payment_method', $this->payment_method);
         $stmt->bindParam(':status', $this->status);
-        $stmt->bindParam(':description', $this->description);
+        $stmt->bindParam(':notes', $this->notes);
         $stmt->bindParam(':attachment', $this->attachment);
         $stmt->bindParam(':created_at', $this->created_at);
         $stmt->bindParam(':id', $this->id);
@@ -176,10 +176,20 @@ class Saving
         return $stmt->execute();
     }
 
-    public function getTotalSavings()
+    public function getTotalSavings($userId = null)
     {
-        $query = "SELECT COALESCE(SUM(amount), 0) as total FROM {$this->table} WHERE status = 'completed' AND is_active = 1 AND deleted_at IS NULL";
+        $query = "SELECT COALESCE(SUM(amount), 0) as total FROM {$this->table} WHERE status = 'verified' AND is_active = 1 AND deleted_at IS NULL";
+        
+        if ($userId !== null) {
+            $query .= " AND user_id = :user_id";
+        }
+        
         $stmt = $this->conn->prepare($query);
+        
+        if ($userId !== null) {
+            $stmt->bindParam(':user_id', $userId);
+        }
+        
         $stmt->execute();
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result['total'];

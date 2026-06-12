@@ -3,7 +3,7 @@
 <div class="max-w-5xl mx-auto bg-white rounded-lg shadow-md p-4 md:p-6">
     <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-6"><?= Locale::get('add_new_saving') ?></h1>
 
-    <form action="index.php?action=store" method="POST" enctype="multipart/form-data" class="max-w-lg" novalidate>
+    <form action="index.php?action=store&return=<?= urlencode($_SERVER['HTTP_REFERER'] ?? 'index.php?action=payments') ?>" method="POST" enctype="multipart/form-data" class="max-w-lg" novalidate>
         <div class="mb-4">
             <label for="user_id" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('user') ?> *</label>
             <div class="flex items-center gap-3">
@@ -65,8 +65,8 @@
         </div>
 
         <div class="mb-4">
-            <label for="name" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('name') ?></label>
-            <input type="text" id="name" name="name" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <label for="description" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('description') ?> *</label>
+            <input type="text" id="description" name="description" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
         </div>
 
         <div class="mb-4">
@@ -80,24 +80,20 @@
                 <option value=""><?= Locale::get('select_method') ?></option>
                 <option value="cash"><?= Locale::get('cash') ?></option>
                 <option value="bank_transfer"><?= Locale::get('bank_transfer') ?></option>
-                <option value="credit_card"><?= Locale::get('credit_card') ?></option>
-                <option value="debit_card"><?= Locale::get('debit_card') ?></option>
-                <option value="check"><?= Locale::get('check') ?></option>
             </select>
         </div>
 
         <div class="mb-4">
             <label for="status" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('status') ?></label>
             <select id="status" name="status" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                <option value="pending"><?= Locale::get('pending') ?></option>
-                <option value="completed"><?= Locale::get('completed') ?></option>
-                <option value="failed"><?= Locale::get('failed') ?></option>
+                <option value="unverified"><?= Locale::get('unverified') ?></option>
+                <option value="verified"><?= Locale::get('verified') ?></option>
             </select>
         </div>
 
         <div class="mb-4">
-            <label for="description" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('description') ?></label>
-            <textarea id="description" name="description" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+            <label for="notes" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('notes') ?></label>
+            <textarea id="notes" name="notes" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
         </div>
 
         <div class="mb-4">
@@ -114,7 +110,7 @@
 
         <div class="flex flex-wrap gap-3">
             <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition duration-200"><?= Locale::get('save') ?></button>
-            <a href="index.php" class="bg-gray-400 hover:bg-gray-500 text-white font-medium py-2 px-4 rounded-lg transition duration-200"><?= Locale::get('cancel') ?></a>
+            <a href="javascript:history.back()" class="bg-gray-400 hover:bg-gray-500 text-white font-medium py-2 px-4 rounded-lg transition duration-200"><?= Locale::get('cancel') ?></a>
         </div>
     </form>
 </div>
@@ -122,7 +118,7 @@
 <script>
 document.querySelector('form').addEventListener('submit', function(e) {
     var userSelect = document.getElementById('user_id');
-    var nameInput = document.getElementById('name');
+    var descriptionInput = document.getElementById('description');
     var amountInput = document.getElementById('amount');
     var methodSelect = document.getElementById('payment_method');
     
@@ -133,10 +129,10 @@ document.querySelector('form').addEventListener('submit', function(e) {
         return false;
     }
     
-    if (!nameInput.value.trim()) {
+    if (!descriptionInput.value.trim()) {
         e.preventDefault();
-        alert('<?= Locale::get('name_required') ?>');
-        nameInput.focus();
+        alert('<?= Locale::get('description_required') ?>');
+        descriptionInput.focus();
         return false;
     }
     

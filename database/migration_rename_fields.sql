@@ -1,0 +1,3 @@
+ALTER TABLE users CHANGE COLUMN nickname username VARCHAR(100) DEFAULT NULL;
+ALTER TABLE savings CHANGE COLUMN description notes TEXT;
+ALTER TABLE savings CHANGE COLUMN name description VARCHAR(255) NOT NULL;

@@ -154,73 +154,49 @@ class WeeklySaving
 
         $remainingPayment = $totalPaid;
         foreach ($grouped as $monthKey => &$monthData) {
-            $items = [];
-            
             foreach ($monthData['weeks'] as $index => $weekData) {
-                $items[] = [
-                    'type' => 'week',
-                    'index' => $index,
-                    'date' => $weekData['start_date']
-                ];
+                $value = $monthData['weeks'][$index]['value'];
+                
+                if ($remainingPayment >= $value) {
+                    $monthData['weeks'][$index]['paid'] = true;
+                    $monthData['weeks'][$index]['pending'] = 0;
+                    $remainingPayment -= $value;
+                    $monthData['subtotal_paid'] += $value;
+                } elseif ($remainingPayment > 0) {
+                    $monthData['weeks'][$index]['paid'] = false;
+                    $monthData['weeks'][$index]['pending'] = $value - $remainingPayment;
+                    $monthData['weeks'][$index]['partial'] = true;
+                    $monthData['weeks'][$index]['paid_amount'] = $remainingPayment;
+                    $monthData['subtotal_paid'] += $remainingPayment;
+                    $remainingPayment = 0;
+                } else {
+                    $monthData['weeks'][$index]['paid'] = false;
+                    $monthData['weeks'][$index]['pending'] = $value;
+                    $monthData['weeks'][$index]['partial'] = false;
+                    $monthData['weeks'][$index]['paid_amount'] = 0;
+                }
             }
             
             foreach ($monthData['activities'] as $index => $activity) {
-                $items[] = [
-                    'type' => 'activity',
-                    'index' => $index,
-                    'date' => $activity['activity_date']
-                ];
-            }
-            
-            usort($items, function($a, $b) {
-                return strcmp($a['date'], $b['date']);
-            });
-            
-            foreach ($items as $item) {
-                if ($item['type'] === 'week') {
-                    $index = $item['index'];
-                    $value = $monthData['weeks'][$index]['value'];
-                    
-                    if ($remainingPayment >= $value) {
-                        $monthData['weeks'][$index]['paid'] = true;
-                        $monthData['weeks'][$index]['pending'] = 0;
-                        $remainingPayment -= $value;
-                        $monthData['subtotal_paid'] += $value;
-                    } elseif ($remainingPayment > 0) {
-                        $monthData['weeks'][$index]['paid'] = false;
-                        $monthData['weeks'][$index]['pending'] = $value - $remainingPayment;
-                        $monthData['weeks'][$index]['partial'] = true;
-                        $monthData['weeks'][$index]['paid_amount'] = $remainingPayment;
-                        $monthData['subtotal_paid'] += $remainingPayment;
-                        $remainingPayment = 0;
-                    } else {
-                        $monthData['weeks'][$index]['paid'] = false;
-                        $monthData['weeks'][$index]['pending'] = $value;
-                        $monthData['weeks'][$index]['partial'] = false;
-                        $monthData['weeks'][$index]['paid_amount'] = 0;
-                    }
+                $value = $monthData['activities'][$index]['multiplied_value'];
+                
+                if ($remainingPayment >= $value) {
+                    $monthData['activities'][$index]['paid'] = true;
+                    $monthData['activities'][$index]['pending'] = 0;
+                    $remainingPayment -= $value;
+                    $monthData['subtotal_paid'] += $value;
+                } elseif ($remainingPayment > 0) {
+                    $monthData['activities'][$index]['paid'] = false;
+                    $monthData['activities'][$index]['pending'] = $value - $remainingPayment;
+                    $monthData['activities'][$index]['partial'] = true;
+                    $monthData['activities'][$index]['paid_amount'] = $remainingPayment;
+                    $monthData['subtotal_paid'] += $remainingPayment;
+                    $remainingPayment = 0;
                 } else {
-                    $index = $item['index'];
-                    $value = $monthData['activities'][$index]['multiplied_value'];
-                    
-                    if ($remainingPayment >= $value) {
-                        $monthData['activities'][$index]['paid'] = true;
-                        $monthData['activities'][$index]['pending'] = 0;
-                        $remainingPayment -= $value;
-                        $monthData['subtotal_paid'] += $value;
-                    } elseif ($remainingPayment > 0) {
-                        $monthData['activities'][$index]['paid'] = false;
-                        $monthData['activities'][$index]['pending'] = $value - $remainingPayment;
-                        $monthData['activities'][$index]['partial'] = true;
-                        $monthData['activities'][$index]['paid_amount'] = $remainingPayment;
-                        $monthData['subtotal_paid'] += $remainingPayment;
-                        $remainingPayment = 0;
-                    } else {
-                        $monthData['activities'][$index]['paid'] = false;
-                        $monthData['activities'][$index]['pending'] = $value;
-                        $monthData['activities'][$index]['partial'] = false;
-                        $monthData['activities'][$index]['paid_amount'] = 0;
-                    }
+                    $monthData['activities'][$index]['paid'] = false;
+                    $monthData['activities'][$index]['pending'] = $value;
+                    $monthData['activities'][$index]['partial'] = false;
+                    $monthData['activities'][$index]['paid_amount'] = 0;
                 }
             }
         }
@@ -273,7 +249,7 @@ class WeeklySaving
     {
         $query = "SELECT COALESCE(SUM(amount), 0) as total 
                   FROM savings 
-                  WHERE status = 'completed' AND is_active = 1 AND deleted_at IS NULL";
+                  WHERE status = 'verified' AND is_active = 1 AND deleted_at IS NULL";
         
         if ($userId !== null) {
             $query .= " AND user_id = :user_id";

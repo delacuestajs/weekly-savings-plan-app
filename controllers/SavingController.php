@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../models/Saving.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../models/WeeklySaving.php';
+require_once __DIR__ . '/../controllers/Auth.php';
 
 class SavingController
 {
@@ -17,6 +18,11 @@ class SavingController
         $this->weeklySaving = new WeeklySaving();
     }
 
+    private function getReturnUrl($default = 'index.php?action=payments')
+    {
+        return $_GET['return'] ?? $_POST['return'] ?? $default;
+    }
+
     public function index()
     {
         $filters = [
@@ -25,8 +31,12 @@ class SavingController
             'month' => $_GET['month'] ?? ''
         ];
         
+        if (!Auth::isAdmin()) {
+            $filters['user_id'] = Auth::getUserId();
+        }
+        
         $savings = $this->saving->getAll($filters);
-        $total = $this->saving->getTotalSavings();
+        $total = $this->saving->getTotalSavings(!Auth::isAdmin() ? Auth::getUserId() : null);
         $usersList = $this->user->getAll()->fetchAll(PDO::FETCH_ASSOC);
         require __DIR__ . '/../views/list.php';
     }
@@ -35,6 +45,11 @@ class SavingController
     {
         $year = isset($_GET['year']) ? (int)$_GET['year'] : date('Y');
         $userId = isset($_GET['user_id']) ? (int)$_GET['user_id'] : null;
+        
+        if (!Auth::isAdmin()) {
+            $userId = Auth::getUserId();
+        }
+        
         $data = $this->weeklySaving->getWeeklyOverview($year, $userId);
         $usersList = $this->user->getAll()->fetchAll(PDO::FETCH_ASSOC);
         require __DIR__ . '/../views/weekly.php';
@@ -59,17 +74,19 @@ class SavingController
 
     public function store()
     {
+        $returnUrl = $this->getReturnUrl();
+        
         if (empty($_POST['user_id'])) {
             header('Location: index.php?action=create&toast=error&message=' . urlencode(Locale::get('user_required')));
             exit;
         }
         
         $this->saving->user_id = $_POST['user_id'];
-        $this->saving->name = $_POST['name'];
+        $this->saving->description = $_POST['description'];
         $this->saving->amount = $_POST['amount'];
         $this->saving->payment_method = $_POST['payment_method'];
         $this->saving->status = $_POST['status'];
-        $this->saving->description = $_POST['description'];
+        $this->saving->notes = $_POST['notes'];
         $this->saving->created_at = !empty($_POST['created_at']) ? $_POST['created_at'] : date('Y-m-d H:i:s');
 
         $this->saving->attachment = null;
@@ -83,10 +100,10 @@ class SavingController
         }
 
         if ($this->saving->create()) {
-            header('Location: index.php?toast=success&message=' . urlencode(Locale::get('created_successfully')));
+            header('Location: ' . $returnUrl . '&toast=success&message=' . urlencode(Locale::get('created_successfully')));
             exit;
         }
-        header('Location: index.php?toast=error&message=' . urlencode(Locale::get('error_creating')));
+        header('Location: index.php?action=create&toast=error&message=' . urlencode(Locale::get('error_creating')));
         exit;
     }
 
@@ -110,13 +127,15 @@ class SavingController
 
     public function update($id)
     {
+        $returnUrl = $this->getReturnUrl();
+        
         $this->saving->id = $id;
         $this->saving->user_id = !empty($_POST['user_id']) ? $_POST['user_id'] : null;
-        $this->saving->name = $_POST['name'];
+        $this->saving->description = $_POST['description'];
         $this->saving->amount = $_POST['amount'];
         $this->saving->payment_method = $_POST['payment_method'];
         $this->saving->status = $_POST['status'];
-        $this->saving->description = $_POST['description'];
+        $this->saving->notes = $_POST['notes'];
         $this->saving->created_at = !empty($_POST['created_at']) ? $_POST['created_at'] : date('Y-m-d H:i:s');
 
         $existingSaving = $this->saving->getById($id);
@@ -129,7 +148,7 @@ class SavingController
 
             $uploaded = $this->saving->uploadAttachment($_FILES['attachment']);
             if ($uploaded === false) {
-                header('Location: index.php?action=edit&id=' . $id . '&toast=error&message=' . urlencode('Invalid file type or file too large. Allowed: JPG, PNG, GIF, WebP, PDF, DOC, DOCX (max 5MB)'));
+                header('Location: index.php?action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('invalid_file')));
                 exit;
             }
             $this->saving->attachment = $uploaded;
@@ -143,20 +162,20 @@ class SavingController
         }
 
         if ($this->saving->update()) {
-            header('Location: index.php?toast=success&message=' . urlencode('Saving updated successfully'));
+            header('Location: ' . $returnUrl . '&toast=success&message=' . urlencode(Locale::get('updated_successfully')));
             exit;
         }
-        header('Location: index.php?toast=error&message=' . urlencode('Error updating saving'));
+        header('Location: index.php?action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('error_updating')));
         exit;
     }
 
     public function delete($id)
     {
         if ($this->saving->delete($id)) {
-            header('Location: index.php?toast=success&message=' . urlencode('Saving deleted successfully'));
+            header('Location: index.php?action=payments&toast=success&message=' . urlencode(Locale::get('deleted_successfully')));
             exit;
         }
-        header('Location: index.php?toast=error&message=' . urlencode('Error deleting saving'));
+        header('Location: index.php?action=payments&toast=error&message=' . urlencode(Locale::get('error_deleting')));
         exit;
     }
 }

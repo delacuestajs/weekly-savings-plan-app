@@ -35,6 +35,7 @@ function translatedDate($dateStr) {
         </div>
 
         <div class="mb-6">
+            <?php if (Auth::isAdmin()): ?>
             <label for="user_filter" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('view_savings_for') ?></label>
             <div class="flex items-center gap-3">
                 <select id="user_filter" onchange="filterByUser(this)" class="flex-1 max-w-xs px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
@@ -52,6 +53,7 @@ function translatedDate($dateStr) {
                     <a href="index.php?action=weekly&year=<?= $data['year'] ?>" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition text-sm"><?= Locale::get('clear') ?></a>
                 <?php endif; ?>
             </div>
+            <?php endif; ?>
             <?php if (!empty($data['user_id']) && $data['multiplier'] > 1): ?>
                 <div class="mt-2 inline-flex items-center gap-2 px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>

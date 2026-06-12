@@ -1,4 +1,4 @@
-<div id="toast" class="fixed top-4 right-4 z-50 hidden max-w-sm">
+<div id="toast" class="fixed bottom-4 right-4 z-50 hidden max-w-sm">
     <div id="toastContent" class="flex items-center p-4 rounded-lg shadow-lg text-white">
         <span id="toastIcon" class="mr-3 text-xl"></span>
         <span id="toastMessage" class="flex-1 text-sm font-medium"></span>
@@ -257,6 +257,38 @@ function initUploadProgress(inputId, progressId) {
 document.addEventListener('DOMContentLoaded', function() {
     initUploadProgress('picture', 'picture_progress');
     initUploadProgress('attachment', 'attachment_progress');
+    
+    var forms = document.querySelectorAll('form');
+    forms.forEach(function(form) {
+        if (!form.hasAttribute('novalidate')) {
+            form.setAttribute('novalidate', '');
+        }
+        
+        form.addEventListener('submit', function(e) {
+            var requiredFields = form.querySelectorAll('[required]');
+            var firstInvalid = null;
+            
+            requiredFields.forEach(function(field) {
+                if (!field.value.trim()) {
+                    e.preventDefault();
+                    field.style.borderColor = '#ef4444';
+                    if (!firstInvalid) {
+                        firstInvalid = field;
+                    }
+                    field.setCustomValidity('<?= Locale::get('field_required') ?>');
+                    field.reportValidity();
+                } else {
+                    field.style.borderColor = '';
+                    field.setCustomValidity('');
+                }
+            });
+            
+            if (firstInvalid) {
+                firstInvalid.focus();
+                return false;
+            }
+        });
+    });
 });
 </script>
 

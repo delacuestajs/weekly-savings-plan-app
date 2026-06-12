@@ -1,16 +1,16 @@
 <?php require_once __DIR__ . '/../views/header.php'; ?>
 
 <div class="max-w-5xl mx-auto bg-white rounded-lg shadow-md p-4 md:p-6">
-    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-6">Edit Saving</h1>
+    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-6"><?= Locale::get('edit') ?> <?= Locale::get('payments') ?></h1>
 
-    <form action="index.php?action=update&id=<?= $saving['id'] ?>" method="POST" enctype="multipart/form-data" class="max-w-lg">
+    <form action="index.php?action=update&id=<?= $saving['id'] ?>&return=<?= urlencode($_SERVER['HTTP_REFERER'] ?? 'index.php?action=payments') ?>" method="POST" enctype="multipart/form-data" class="max-w-lg">
         <div class="mb-4">
-            <label for="user_id" class="block text-sm font-medium text-gray-700 mb-1">User</label>
+            <label for="user_id" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('user') ?></label>
             <div class="flex items-center gap-3">
                 <select id="user_id" name="user_id" onchange="updateUserBadge(this)" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">Select User (Optional)</option>
+                    <option value=""><?= Locale::get('select_user') ?></option>
                 <?php foreach ($users as $userRow): ?>
-                    <option value="<?= $userRow['id'] ?>" <?= ($saving['user_id'] == $userRow['id']) ? 'selected' : '' ?>><?= htmlspecialchars($userRow['firstname'] . ' ' . $userRow['lastname']) ?><?= !empty($userRow['nickname']) ? ' (' . htmlspecialchars($userRow['nickname']) . ')' : '' ?></option>
+                    <option value="<?= $userRow['id'] ?>" <?= ($saving['user_id'] == $userRow['id']) ? 'selected' : '' ?>><?= htmlspecialchars($userRow['firstname'] . ' ' . $userRow['lastname']) ?><?= !empty($userRow['username']) ? ' (' . htmlspecialchars($userRow['username']) . ')' : '' ?></option>
                 <?php endforeach; ?>
                 </select>
                 <div id="userBadge" class="w-12 h-12 rounded-full flex items-center justify-center font-bold text-white text-lg flex-shrink-0 bg-gray-300"></div>
@@ -60,7 +60,7 @@
         </script>
 
         <div class="mb-4">
-            <label for="created_at" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+            <label for="created_at" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('date') ?></label>
             <?php
             $currentDate = '';
             if (!empty($saving['created_at'])) {
@@ -74,47 +74,43 @@
         </div>
 
         <div class="mb-4">
-            <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
-            <input type="text" id="name" name="name" value="<?= htmlspecialchars($saving['name']) ?>" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <label for="description" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('description') ?> *</label>
+            <input type="text" id="description" name="description" value="<?= htmlspecialchars($saving['description']) ?>" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
         </div>
 
         <div class="mb-4">
-            <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+            <label for="amount" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('amount') ?> *</label>
             <input type="number" id="amount" name="amount" step="0.01" min="0" 
                    value="<?= $saving['amount'] ?>" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
         </div>
 
         <div class="mb-4">
-            <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+            <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('payment_method') ?> *</label>
             <select id="payment_method" name="payment_method" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                <option value="">Select Method</option>
-                <option value="cash" <?= $saving['payment_method'] === 'cash' ? 'selected' : '' ?>>Cash</option>
-                <option value="bank_transfer" <?= $saving['payment_method'] === 'bank_transfer' ? 'selected' : '' ?>>Bank Transfer</option>
-                <option value="credit_card" <?= $saving['payment_method'] === 'credit_card' ? 'selected' : '' ?>>Credit Card</option>
-                <option value="debit_card" <?= $saving['payment_method'] === 'debit_card' ? 'selected' : '' ?>>Debit Card</option>
-                <option value="check" <?= $saving['payment_method'] === 'check' ? 'selected' : '' ?>>Check</option>
+                <option value=""><?= Locale::get('select_method') ?></option>
+                <option value="cash" <?= $saving['payment_method'] === 'cash' ? 'selected' : '' ?>><?= Locale::get('cash') ?></option>
+                <option value="bank_transfer" <?= $saving['payment_method'] === 'bank_transfer' ? 'selected' : '' ?>><?= Locale::get('bank_transfer') ?></option>
             </select>
         </div>
 
         <div class="mb-4">
-            <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <label for="status" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('status') ?> *</label>
             <select id="status" name="status" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                <option value="pending" <?= $saving['status'] === 'pending' ? 'selected' : '' ?>>Pending</option>
-                <option value="completed" <?= $saving['status'] === 'completed' ? 'selected' : '' ?>>Completed</option>
-                <option value="failed" <?= $saving['status'] === 'failed' ? 'selected' : '' ?>>Failed</option>
+                <option value="unverified" <?= $saving['status'] === 'unverified' ? 'selected' : '' ?>><?= Locale::get('unverified') ?></option>
+                <option value="verified" <?= $saving['status'] === 'verified' ? 'selected' : '' ?>><?= Locale::get('verified') ?></option>
             </select>
         </div>
 
         <div class="mb-4">
-            <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-            <textarea id="description" name="description" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"><?= htmlspecialchars($saving['description']) ?></textarea>
+            <label for="notes" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('notes') ?></label>
+            <textarea id="notes" name="notes" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"><?= htmlspecialchars($saving['notes'] ?? '') ?></textarea>
         </div>
 
         <div class="mb-4">
-            <label for="attachment" class="block text-sm font-medium text-gray-700 mb-1">Attachment (Screenshot/Document)</label>
+            <label for="attachment" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('attachment_label') ?></label>
             <?php if (!empty($saving['attachment'])): ?>
                 <div class="mb-2 p-3 bg-gray-50 rounded-lg">
-                    <p class="text-sm text-gray-600 mb-2">Current attachment:</p>
+                    <p class="text-sm text-gray-600 mb-2"><?= Locale::get('current_attachment') ?></p>
                     <?php
                     $ext = strtolower(pathinfo($saving['attachment'], PATHINFO_EXTENSION));
                     $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
@@ -122,22 +118,22 @@
                     $type = $isImage ? 'image' : ($isPdf ? 'pdf' : 'file');
                     ?>
                     <?php if ($isImage): ?>
-                        <button type="button" onclick="openModal('uploads/<?= htmlspecialchars($saving['attachment']) ?>', 'Current Attachment', '<?= $type ?>')" class="cursor-pointer">
+                        <button type="button" onclick="openModal('uploads/<?= htmlspecialchars($saving['attachment']) ?>', '<?= Locale::get('current_attachment') ?>', '<?= $type ?>')" class="cursor-pointer">
                             <img src="uploads/<?= htmlspecialchars($saving['attachment']) ?>" alt="Attachment" class="max-w-full h-auto max-h-48 rounded-lg mb-2 hover:opacity-80 transition">
                         </button>
                     <?php else: ?>
-                        <button type="button" onclick="openModal('uploads/<?= htmlspecialchars($saving['attachment']) ?>', 'Current Attachment', '<?= $type ?>')" class="text-blue-500 hover:underline mb-2 inline-block cursor-pointer">
+                        <button type="button" onclick="openModal('uploads/<?= htmlspecialchars($saving['attachment']) ?>', '<?= Locale::get('current_attachment') ?>', '<?= $type ?>')" class="text-blue-500 hover:underline mb-2 inline-block cursor-pointer">
                             📎 <?= htmlspecialchars($saving['attachment']) ?>
                         </button>
                     <?php endif; ?>
                     <label class="flex items-center text-sm text-red-600">
                         <input type="checkbox" name="remove_attachment" value="1" class="mr-2 rounded">
-                        Remove current attachment
+                        <?= Locale::get('remove_attachment') ?>
                     </label>
                 </div>
             <?php else: ?>
                 <div class="mb-2 p-3 bg-gray-50 rounded-lg">
-                    <p class="text-sm text-gray-500 italic">No attachment uploaded yet.</p>
+                    <p class="text-sm text-gray-500 italic"><?= Locale::get('no_attachment') ?></p>
                 </div>
             <?php endif; ?>
             <input type="file" id="attachment" name="attachment" accept="image/*,.pdf,.doc,.docx" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
@@ -147,12 +143,12 @@
                 </div>
                 <p class="progress-text text-xs text-gray-500 mt-1">0%</p>
             </div>
-            <p class="mt-1 text-sm text-gray-500">JPG, PNG, GIF, WebP, PDF, DOC, DOCX (max 5MB)</p>
+            <p class="mt-1 text-sm text-gray-500"><?= Locale::get('allowed_files') ?></p>
         </div>
 
         <div class="flex flex-wrap gap-3">
-            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition duration-200">Update</button>
-            <a href="index.php" class="bg-gray-400 hover:bg-gray-500 text-white font-medium py-2 px-4 rounded-lg transition duration-200">Cancel</a>
+            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition duration-200"><?= Locale::get('update') ?></button>
+            <a href="javascript:history.back()" class="bg-gray-400 hover:bg-gray-500 text-white font-medium py-2 px-4 rounded-lg transition duration-200"><?= Locale::get('cancel') ?></a>
         </div>
     </form>
 </div>
