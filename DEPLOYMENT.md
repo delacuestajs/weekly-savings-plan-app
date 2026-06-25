@@ -166,7 +166,7 @@ After deployment:
 
 | Service | URL |
 |---------|-----|
-| App | `http://<REMOTE_IP>:8490` |
+| App | `http://<REMOTE_IP>:8721` |
 | MySQL | `<REMOTE_IP>:3306` |
 | Portainer | `https://<REMOTE_IP>:9443` |
 
@@ -184,8 +184,80 @@ After deployment:
 
 ---
 
+## HTTPS with Caddy (Reverse Proxy)
+
+### Architecture
+
+```
+Internet → Router (80/443) → Caddy Container → App Container (80)
+```
+
+Caddy automatically obtains and renews Let's Encrypt certificates.
+
+### Prerequisites
+
+- Domain or DDNS hostname (e.g. `your-domain.com`)
+- Router forwarding ports 80 and 443 to server
+
+### Files
+
+**`caddy/Caddyfile`**:
+```
+your-domain.com {
+    reverse_proxy app:80
+}
+```
+
+**`docker-compose.yml`** (add Caddy service):
+```yaml
+services:
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - app
+    networks:
+      - app-network
+
+  app:
+    # Keep port 8721 for LAN access
+    ports:
+      - "0.0.0.0:8721:80"
+    # ... rest of config
+
+volumes:
+  caddy-data:
+  caddy-config:
+```
+
+### Deploy HTTPS
+
+```bash
+docker --context remote compose up -d --build
+```
+
+### Verify
+
+- `https://your-domain.com` - App with valid SSL certificate
+- `http://<LOCAL_IP>:8721` - LAN access (no SSL)
+
+### Features
+
+- **Auto HTTPS**: Caddy obtains Let's Encrypt certs automatically
+- **Auto Renewal**: Certs renew before expiry
+- **HTTP Redirect**: Port 80 automatically redirects to HTTPS
+
+---
+
 ## Security Notes
 
 - **Docker Context (TCP)**: Port 2375 is unencrypted. Use TLS (port 2376) in production.
 - **SSH**: More secure, but requires password handling or SSH keys.
 - Consider using SSH keys instead of passwords for production environments.
+- **HTTPS**: Use Caddy or similar reverse proxy for production deployments.

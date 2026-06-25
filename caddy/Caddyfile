@@ -1,0 +1,3 @@
+sx5866e.glddns.com {
+    reverse_proxy app:80
+}

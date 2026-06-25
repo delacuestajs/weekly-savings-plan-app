@@ -1,6 +1,9 @@
 # Secrets
 secrets/
 
+# Local files (sensitive info)
+local/
+
 # Docker
 docker-compose.override.yml
 
