@@ -10,20 +10,10 @@ class Database
 
     public function __construct()
     {
-        $this->host = $this->readSecret('db_host', 'db');
-        $this->dbname = $this->readSecret('db_name', 'savings_db');
-        $this->username = $this->readSecret('db_username', 'root');
-        $this->password = $this->readSecret('db_password', 'root');
-    }
-
-    private function readSecret($secretName, $default = '')
-    {
-        $secretPath = "/run/secrets/{$secretName}";
-        if (file_exists($secretPath)) {
-            $value = trim(file_get_contents($secretPath));
-            return $value !== '' ? $value : $default;
-        }
-        return $default;
+        $this->host = getenv('DB_HOST') ?: 'db';
+        $this->dbname = getenv('DB_NAME') ?: 'savings_db';
+        $this->username = getenv('DB_USERNAME') ?: 'root';
+        $this->password = getenv('DB_PASSWORD') ?: '';
     }
 
     public function getConnection()

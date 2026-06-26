@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   caddy:
     image: caddy:2-alpine
@@ -10,6 +8,8 @@ services:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile
       - caddy-data:/data
       - caddy-config:/config
+    environment:
+      - DOMAIN_NAME=${CADDY_DOMAIN}
     depends_on:
       - app
     networks:
@@ -18,44 +18,31 @@ services:
   app:
     build: .
     ports:
-      - "0.0.0.0:8490:80"
+      - "0.0.0.0:${APP_PORT:-8490}:80"
     volumes:
       - .:/var/www/html
+    environment:
+      - DB_HOST=${DB_HOST:-db}
+      - DB_NAME=${DB_NAME}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
     depends_on:
       - db
     networks:
       - app-network
-    secrets:
-      - db_host
-      - db_name
-      - db_username
-      - db_password
 
   db:
     image: mysql:8.0
     environment:
-      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
-      MYSQL_DATABASE_FILE: /run/secrets/db_name
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      TZ: America/Bogota
+    command: --default-time-zone=-05:00
     volumes:
       - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
       - db-data:/var/lib/mysql
     networks:
       - app-network
-    secrets:
-      - db_root_password
-      - db_name
-
-secrets:
-  db_host:
-    file: ./secrets/db_host.txt
-  db_name:
-    file: ./secrets/db_name.txt
-  db_username:
-    file: ./secrets/db_username.txt
-  db_password:
-    file: ./secrets/db_password.txt
-  db_root_password:
-    file: ./secrets/db_root_password.txt
 
 networks:
   app-network:

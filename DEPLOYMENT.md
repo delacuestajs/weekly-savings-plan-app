@@ -12,7 +12,66 @@ This guide covers two methods to deploy the PHP application to a remote Docker s
 
 ---
 
-## Method 1: Docker Context (TCP)
+## Configuration
+
+### 1. Create Environment File
+
+Copy the example environment file and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` with your actual configuration:
+
+```env
+CADDY_DOMAIN=your-domain.com
+APP_PORT=9283
+DB_HOST=db
+DB_NAME=savings_db
+DB_USERNAME=root
+DB_PASSWORD=your_secure_password
+DB_ROOT_PASSWORD=your_root_password
+```
+
+### 2. Environment Variables Reference
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `CADDY_DOMAIN` | Domain/DDNS for HTTPS | (required) |
+| `APP_PORT` | Local LAN access port | `9283` |
+| `DB_HOST` | Database hostname | `db` |
+| `DB_NAME` | MySQL database name | `savings_db` |
+| `DB_USERNAME` | MySQL username | `root` |
+| `DB_PASSWORD` | MySQL password | (required) |
+| `DB_ROOT_PASSWORD` | MySQL root password | (required) |
+
+### 3. Timezone Configuration
+
+The application uses `America/Bogota` (UTC-5) as default timezone. To change it:
+
+1. Edit `locale.php` and update the timezone:
+   ```php
+   date_default_timezone_set('America/New_York');
+   ```
+
+2. Common timezone identifiers:
+   | Timezone | Identifier |
+   |----------|------------|
+   | UTC-5 (Colombia, Peru) | `America/Bogota` |
+   | UTC-5 (US Eastern) | `America/New_York` |
+   | UTC-6 (US Central) | `America/Chicago` |
+   | UTC-7 (US Mountain) | `America/Denver` |
+   | UTC-8 (US Pacific) | `America/Los_Angeles` |
+   | UTC+0 (London) | `Europe/London` |
+   | UTC+1 (Paris, Madrid) | `Europe/Paris` |
+   | UTC+2 (Berlin, Rome) | `Europe/Berlin` |
+
+   Full list: https://www.php.net/manual/en/timezones.php
+
+---
+
+## Method 1: Docker Context (Recommended)
 
 Docker contexts allow you to manage remote Docker engines directly from your local CLI.
 
@@ -45,34 +104,36 @@ docker context create remote --docker "host=tcp://<REMOTE_IP>:2375" --descriptio
 docker --context remote ps
 ```
 
-### 1.3 Deploy Application
+### 1.3 Setup .env on Remote Server
+
+Copy your `.env` file to the remote server:
+
+```bash
+scp .env root@<REMOTE_IP>:/opt/your-project/
+```
+
+### 1.4 Deploy Application
 
 ```bash
 # Build and start containers on remote
-docker --context remote compose up -d --build
+docker --context remote compose --env-file .env up -d --build
 
 # Check status
 docker --context remote ps
 ```
 
-### 1.4 Database Transfer (Optional)
-
-Export from local and restore on remote:
-
-```bash
-# Export local database
-docker exec <local_db_container> bash -c 'mysqldump -u root -p$(cat /run/secrets/db_root_password) savings_db 2>/dev/null' > db_backup.sql
-
-# Copy backup to remote container
-docker --context remote cp db_backup.sql <remote_db_container>:/tmp/db_backup.sql
-
-# Restore on remote
-docker --context remote exec <remote_db_container> bash -c 'mysql -u root -p$(cat /run/secrets/db_root_password) savings_db < /tmp/db_backup.sql'
-```
-
 ### 1.5 Useful Commands
 
 ```bash
+# View logs
+docker --context remote compose logs -f
+
+# Restart a service
+docker --context remote restart <service_name>
+
+# Execute command in container
+docker --context remote exec -it <container_name> bash
+
 # Set as default context
 docker context use remote
 
@@ -101,43 +162,109 @@ wsl -u root -e bash -c "apt-get update && apt-get install -y sshpass"
 
 ```bash
 # Create project directory on remote
-sshpass -p '<PASSWORD>' ssh -o StrictHostKeyChecking=no root@<REMOTE_IP> "mkdir -p /opt/oc-test-php"
+sshpass -p '<PASSWORD>' ssh -o StrictHostKeyChecking=no root@<REMOTE_IP> "mkdir -p /opt/your-project"
 
-# Copy files via SCP
-sshpass -p '<PASSWORD>' scp -o StrictHostKeyChecking=no -r ./* root@<REMOTE_IP>:/opt/oc-test-php/
+# Copy files via SCP (including .env)
+sshpass -p '<PASSWORD>' scp -o StrictHostKeyChecking=no -r ./* .env root@<REMOTE_IP>:/opt/your-project/
 ```
 
 ### 2.3 Deploy on Remote
 
 ```bash
 # Build and start containers
-sshpass -p '<PASSWORD>' ssh -o StrictHostKeyChecking=no root@<REMOTE_IP> "cd /opt/oc-test-php && docker compose up -d --build"
+sshpass -p '<PASSWORD>' ssh -o StrictHostKeyChecking=no root@<REMOTE_IP> "cd /opt/your-project && docker compose up -d --build"
 
 # Check container status
 sshpass -p '<PASSWORD>' ssh -o StrictHostKeyChecking=no root@<REMOTE_IP> "docker ps"
 ```
 
-### 2.4 Windows PowerShell (Posh-SSH)
+### 2.4 Windows PowerShell
 
-Alternatively, use the Posh-SSH PowerShell module:
+Using environment variables from `.env`:
 
 ```powershell
-# Install module
-Install-Module -Name Posh-SSH -Force -Scope CurrentUser
+# Load environment variables
+Get-Content .env | ForEach-Object {
+    if ($_ -match '^([^#][^=]+)=(.*)$') {
+        [Environment]::SetEnvironmentVariable($matches[1].Trim(), $matches[2].Trim(), "Process")
+    }
+}
 
-# Connect and run commands
-$password = 'your_password'
-$secPass = ConvertTo-SecureString $password -AsPlainText -Force
-$cred = New-Object System.Management.Automation.PSCredential("root", $secPass)
-$session = New-SSHSession -ComputerName "<REMOTE_IP>" -Credential $cred -AcceptKey
-
-# Run remote command
-$result = Invoke-SSHCommand -SessionId $session.SessionId -Command "docker ps"
-Write-Output $result.Output
-
-# Disconnect
-Remove-SSHSession -SessionId $session.SessionId
+# Deploy via WSL
+wsl -e bash -c "sshpass -p '$env:SSH_PASS' ssh -o StrictHostKeyChecking=no $env:SSH_USER@$env:SSH_HOST 'cd $env:SSH_DIR && docker compose up -d --build'"
 ```
+
+---
+
+## HTTPS with Caddy (Reverse Proxy)
+
+### Architecture
+
+```
+Internet → Router (80/443) → Caddy Container → App Container (80)
+```
+
+Caddy automatically obtains and renews Let's Encrypt certificates.
+
+### Prerequisites
+
+- Domain or DDNS hostname (set in `CADDY_DOMAIN` env var)
+- Router forwarding ports 80 and 443 to server
+
+### Files
+
+**`.env`**:
+```env
+CADDY_DOMAIN=your-domain.com
+```
+
+**`caddy/Caddyfile`**:
+```
+{$DOMAIN_NAME} {
+    reverse_proxy app:80
+}
+```
+
+**`docker-compose.yml`** (Caddy service):
+```yaml
+services:
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - caddy-data:/data
+      - caddy-config:/config
+    environment:
+      - DOMAIN_NAME=${CADDY_DOMAIN}
+    depends_on:
+      - app
+    networks:
+      - app-network
+
+volumes:
+  caddy-data:
+  caddy-config:
+```
+
+### Deploy HTTPS
+
+```bash
+docker --context remote compose --env-file .env up -d --build
+```
+
+### Verify
+
+- `https://your-domain.com` - App with valid SSL certificate
+- `http://<LOCAL_IP>:9283` - LAN access (no SSL)
+
+### Features
+
+- **Auto HTTPS**: Caddy obtains Let's Encrypt certs automatically
+- **Auto Renewal**: Certs renew before expiry
+- **HTTP Redirect**: Port 80 automatically redirects to HTTPS
 
 ---
 
@@ -155,7 +282,7 @@ ADD COLUMN password VARCHAR(255) NOT NULL AFTER role;
 Run inside the DB container:
 
 ```bash
-docker exec <db_container> bash -c 'mysql -u root -p$(cat /run/secrets/db_root_password) savings_db -e "ALTER TABLE users ADD COLUMN username VARCHAR(100) DEFAULT NULL AFTER lastname, ADD COLUMN role TINYINT DEFAULT 0 AFTER multiplier, ADD COLUMN password VARCHAR(255) NOT NULL AFTER role;"'
+docker --context remote exec -it <db_container> mysql -u root -p<password> <database> -e "ALTER TABLE users ADD COLUMN username VARCHAR(100) DEFAULT NULL AFTER lastname, ADD COLUMN role TINYINT DEFAULT 0 AFTER multiplier, ADD COLUMN password VARCHAR(255) NOT NULL AFTER role;"
 ```
 
 ---
@@ -166,9 +293,8 @@ After deployment:
 
 | Service | URL |
 |---------|-----|
-| App | `http://<REMOTE_IP>:8721` |
-| MySQL | `<REMOTE_IP>:3306` |
-| Portainer | `https://<REMOTE_IP>:9443` |
+| App (HTTPS) | `https://your-domain.com` |
+| App (LAN) | `http://<LOCAL_IP>:9283` |
 
 ---
 
@@ -184,80 +310,29 @@ After deployment:
 
 ---
 
-## HTTPS with Caddy (Reverse Proxy)
-
-### Architecture
-
-```
-Internet → Router (80/443) → Caddy Container → App Container (80)
-```
-
-Caddy automatically obtains and renews Let's Encrypt certificates.
-
-### Prerequisites
-
-- Domain or DDNS hostname (e.g. `your-domain.com`)
-- Router forwarding ports 80 and 443 to server
-
-### Files
-
-**`caddy/Caddyfile`**:
-```
-your-domain.com {
-    reverse_proxy app:80
-}
-```
-
-**`docker-compose.yml`** (add Caddy service):
-```yaml
-services:
-  caddy:
-    image: caddy:2-alpine
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
-      - caddy-data:/data
-      - caddy-config:/config
-    depends_on:
-      - app
-    networks:
-      - app-network
-
-  app:
-    # Keep port 8721 for LAN access
-    ports:
-      - "0.0.0.0:8721:80"
-    # ... rest of config
-
-volumes:
-  caddy-data:
-  caddy-config:
-```
-
-### Deploy HTTPS
-
-```bash
-docker --context remote compose up -d --build
-```
-
-### Verify
-
-- `https://your-domain.com` - App with valid SSL certificate
-- `http://<LOCAL_IP>:8721` - LAN access (no SSL)
-
-### Features
-
-- **Auto HTTPS**: Caddy obtains Let's Encrypt certs automatically
-- **Auto Renewal**: Certs renew before expiry
-- **HTTP Redirect**: Port 80 automatically redirects to HTTPS
-
----
-
 ## Security Notes
 
 - **Docker Context (TCP)**: Port 2375 is unencrypted. Use TLS (port 2376) in production.
 - **SSH**: More secure, but requires password handling or SSH keys.
 - Consider using SSH keys instead of passwords for production environments.
 - **HTTPS**: Use Caddy or similar reverse proxy for production deployments.
+- **Environment Variables**: Never commit `.env` files to version control.
+
+---
+
+## File Structure
+
+```
+.
+├── .env.example        # Example environment variables (commit this)
+├── .env                # Actual environment variables (NEVER commit)
+├── .gitignore          # Git ignore rules
+├── docker-compose.yml  # Docker Compose configuration
+├── caddy/
+│   └── Caddyfile       # Caddy reverse proxy config
+├── config/
+│   └── database.php    # Database connection (reads env vars)
+├── database/
+│   └── schema.sql      # Database schema
+└── secrets/            # Legacy secrets (can be removed)
+```

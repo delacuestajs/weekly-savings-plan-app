@@ -4,6 +4,7 @@ require_once __DIR__ . '/../models/Saving.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../models/WeeklySaving.php';
 require_once __DIR__ . '/../controllers/Auth.php';
+require_once __DIR__ . '/../models/ActivityLog.php';
 
 class SavingController
 {
@@ -21,6 +22,13 @@ class SavingController
     private function getReturnUrl($default = 'index.php?action=payments')
     {
         return $_GET['return'] ?? $_POST['return'] ?? $default;
+    }
+
+    private function getUserName($userId)
+    {
+        if (!$userId) return null;
+        $user = $this->user->getById($userId);
+        return $user ? $user['firstname'] . ' ' . $user['lastname'] : null;
     }
 
     public function index()
@@ -108,6 +116,9 @@ class SavingController
         }
 
         if ($this->saving->create()) {
+            $ownerName = $this->getUserName($this->saving->user_id);
+            ActivityLog::log('saving_created', $this->saving->user_id, $ownerName, 
+                ['amount' => $this->saving->amount, 'method' => $this->saving->payment_method, 'description' => $this->saving->description]);
             header('Location: ' . $returnUrl . '&toast=success&message=' . urlencode(Locale::get('created_successfully')));
             exit;
         }
@@ -143,6 +154,9 @@ class SavingController
     {
         $returnUrl = $this->getReturnUrl();
         
+        // Get existing values before update
+        $existingSaving = $this->saving->getById($id);
+        
         $this->saving->id = $id;
         $this->saving->user_id = !empty($_POST['user_id']) ? $_POST['user_id'] : null;
         $this->saving->description = $_POST['description'];
@@ -152,7 +166,6 @@ class SavingController
         $this->saving->notes = $_POST['notes'];
         $this->saving->created_at = !empty($_POST['created_at']) ? $_POST['created_at'] : date('Y-m-d H:i:s');
 
-        $existingSaving = $this->saving->getById($id);
         $this->saving->attachment = $existingSaving['attachment'] ?? null;
 
         if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] !== UPLOAD_ERR_NO_FILE) {
@@ -183,7 +196,37 @@ class SavingController
             }
         }
 
+        // Build changes object comparing old vs new
+        $changes = [];
+        $fieldsToTrack = [
+            'description' => 'Description',
+            'amount' => 'Amount',
+            'payment_method' => 'Payment Method',
+            'status' => 'Status',
+            'notes' => 'Notes',
+            'created_at' => 'Date'
+        ];
+        
+        foreach ($fieldsToTrack as $field => $label) {
+            $oldValue = $existingSaving[$field] ?? null;
+            $newValue = $this->saving->$field ?? null;
+            
+            // Normalize for comparison
+            if ($field === 'created_at') {
+                $oldValue = $oldValue ? date('Y-m-d', strtotime($oldValue)) : null;
+                $newValue = $newValue ? date('Y-m-d', strtotime($newValue)) : null;
+            }
+            
+            if ($oldValue != $newValue) {
+                $changes[$label] = ['old' => $oldValue, 'new' => $newValue];
+            }
+        }
+
         if ($this->saving->update()) {
+            $ownerName = $this->getUserName($this->saving->user_id);
+            ActivityLog::log('saving_updated', $this->saving->user_id, $ownerName, 
+                ['saving_id' => $id], 
+                !empty($changes) ? $changes : null);
             header('Location: ' . $returnUrl . '&toast=success&message=' . urlencode(Locale::get('updated_successfully')));
             exit;
         }
@@ -210,6 +253,9 @@ class SavingController
         $this->saving->created_at = $saving['created_at'];
         
         if ($this->saving->update()) {
+            $ownerName = $this->getUserName($saving['user_id']);
+            ActivityLog::log('saving_verified', $saving['user_id'], $ownerName, 
+                ['saving_id' => $id, 'amount' => $saving['amount'], 'description' => $saving['description']]);
             header('Location: index.php?action=payments&toast=success&message=' . urlencode(Locale::get('payment_verified')));
             exit;
         }
@@ -219,7 +265,11 @@ class SavingController
 
     public function delete($id)
     {
+        $saving = $this->saving->getById($id);
         if ($this->saving->delete($id)) {
+            $ownerName = $this->getUserName($saving['user_id'] ?? null);
+            ActivityLog::log('saving_deleted', $saving['user_id'] ?? null, $ownerName, 
+                ['saving_id' => $id, 'amount' => $saving['amount'] ?? null]);
             header('Location: index.php?action=payments&toast=success&message=' . urlencode(Locale::get('deleted_successfully')));
             exit;
         }

@@ -1,5 +1,12 @@
 FROM php:8.2-apache
 
+RUN apt-get update && apt-get install -y tzdata && \
+    ln -sf /usr/share/zoneinfo/America/Bogota /etc/localtime && \
+    echo "America/Bogota" > /etc/timezone && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+ENV TZ=America/Bogota
+
 RUN docker-php-ext-install pdo pdo_mysql
 
 COPY . /var/www/html/

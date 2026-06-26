@@ -5,6 +5,7 @@ require_once __DIR__ . '/controllers/Auth.php';
 require_once __DIR__ . '/controllers/SavingController.php';
 require_once __DIR__ . '/controllers/UserController.php';
 require_once __DIR__ . '/controllers/ActivityController.php';
+require_once __DIR__ . '/controllers/LogController.php';
 
 Auth::startSession();
 
@@ -23,18 +24,23 @@ if ($action === 'login') {
     $userData = $user->authenticate($_POST['username'], $_POST['password']);
     if ($userData) {
         Auth::login($userData);
+        ActivityLog::log('user_login', $userData['id'], $userData['firstname'] . ' ' . $userData['lastname']);
         if (password_verify('password', $userData['password'])) {
             $_SESSION['show_password_change'] = true;
         }
         header('Location: index.php?toast=success&message=' . urlencode(Locale::get('login_success')));
         exit;
     }
+    ActivityLog::log('login_failed', null, $_POST['username'] ?? 'unknown');
     header('Location: index.php?toast=error&message=' . urlencode(Locale::get('login_failed')));
     exit;
 }
 
 if ($action === 'logout') {
+    $userId = Auth::getUserId();
+    $userName = Auth::getUserName();
     Auth::logout();
+    ActivityLog::log('user_logout', $userId, $userName);
     header('Location: index.php?toast=success&message=' . urlencode(Locale::get('logout_success')));
     exit;
 }
@@ -126,6 +132,9 @@ if ($module === 'user') {
             $controller->index();
             break;
     }
+} elseif ($module === 'log') {
+    $controller = new LogController();
+    $controller->index();
 } else {
     $controller = new SavingController();
     

@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../models/User.php';
+require_once __DIR__ . '/../models/ActivityLog.php';
 
 class UserController
 {
@@ -56,6 +57,8 @@ class UserController
         }
 
         if ($this->user->create()) {
+            ActivityLog::log('user_created', $this->user->id, $this->user->firstname . ' ' . $this->user->lastname, 
+                ['username' => $this->user->username, 'role' => $this->user->role]);
             header('Location: ' . $returnUrl . '&toast=success&message=' . urlencode(Locale::get('created_successfully')));
             exit;
         }
@@ -111,6 +114,8 @@ class UserController
         }
 
         if ($this->user->update()) {
+            ActivityLog::log('user_updated', $id, $this->user->firstname . ' ' . $this->user->lastname, 
+                ['username' => $this->user->username, 'role' => $this->user->role]);
             header('Location: ' . $returnUrl . '&toast=success&message=' . urlencode(Locale::get('updated_successfully')));
             exit;
         }
@@ -121,6 +126,7 @@ class UserController
     public function resetPassword($id)
     {
         if ($this->user->resetPassword($id)) {
+            ActivityLog::log('password_reset', $id, null, ['reset_by' => Auth::getUserId()]);
             header('Location: index.php?module=user&action=edit&id=' . $id . '&toast=success&message=' . urlencode(Locale::get('password_reset_successfully')));
             exit;
         }
@@ -130,7 +136,9 @@ class UserController
 
     public function delete($id)
     {
+        $userData = $this->user->getById($id);
         if ($this->user->delete($id)) {
+            ActivityLog::log('user_deleted', $id, $userData['firstname'] . ' ' . $userData['lastname'] ?? null);
             header('Location: index.php?module=user&toast=success&message=' . urlencode(Locale::get('deleted_successfully')));
             exit;
         }

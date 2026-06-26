@@ -1,5 +1,6 @@
 # Secrets
 secrets/
+.env
 
 # Local files (sensitive info)
 local/
