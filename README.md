@@ -172,11 +172,19 @@ Database migrations are located in the `database/` directory.
 
 - All passwords are hashed using bcrypt
 - Role-based access control (admin/normal/disabled)
-- Session-based authentication
+- Session-based authentication with session fixation protection
+- CSRF protection on all forms
+- Rate limiting on login (5 attempts per 15 minutes)
+- Session timeout (30 minutes inactivity)
+- Secure session cookies (httponly, secure, SameSite=Lax)
 - Input validation and sanitization
 - SQL injection prevention using prepared statements
+- XSS prevention using htmlspecialchars output escaping
+- Server-side file upload validation (MIME type + extension whitelist)
 - Activity logging with sensitive data redaction
+- Security headers (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy)
 - HTTPS with automatic SSL certificate renewal (Caddy + Let's Encrypt)
+- Password complexity requirements (minimum 8 characters)
 
 ## Browser Support
 

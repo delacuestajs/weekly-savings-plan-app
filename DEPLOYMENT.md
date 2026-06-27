@@ -320,6 +320,44 @@ After deployment:
 
 ---
 
+## Security Features
+
+The application includes the following security measures:
+
+### Authentication & Sessions
+- CSRF tokens on all forms (validated on POST requests)
+- Session regeneration on login (prevents session fixation)
+- 30-minute session timeout on inactivity
+- Secure cookie settings (httponly, secure, SameSite=Lax)
+- Rate limiting: 5 login attempts per 15 minutes lockout
+
+### Input & Output
+- SQL injection prevention via PDO prepared statements
+- XSS prevention via htmlspecialchars output escaping
+- Server-side file upload validation (MIME type + extension whitelist)
+- Password complexity requirements (minimum 8 characters)
+
+### HTTP Security Headers
+Configured in Caddyfile:
+```
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Referrer-Policy: strict-origin-when-cross-origin
+Permissions-Policy: camera=(), microphone=(), geolocation=()
+```
+
+### Upload Protection
+- `uploads/.htaccess` disables PHP execution
+- Server-side MIME type validation using `finfo`
+- Extension whitelist enforcement
+
+### Error Handling
+- Database errors logged server-side
+- Generic error messages shown to users
+- No sensitive information exposed in error output
+
+---
+
 ## File Structure
 
 ```
