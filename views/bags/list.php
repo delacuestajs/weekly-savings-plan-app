@@ -193,20 +193,20 @@ if (isset($_SESSION['bag_truncate_download'])):
             </div>
             
             <div class="mb-4">
-                <label for="edit_name" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('group_short_name') ?> *</label>
-                <input type="text" id="edit_name" name="name" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <label for="bag_edit_name" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('group_short_name') ?> *</label>
+                <input type="text" id="bag_edit_name" name="name" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 <p class="text-xs text-gray-400 mt-1"><?= Locale::get('group_short_name_hint') ?></p>
             </div>
 
             <div class="mb-4">
-                <label for="edit_long_name" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('group_long_name') ?></label>
-                <input type="text" id="edit_long_name" name="long_name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <label for="bag_edit_long_name" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('group_long_name') ?></label>
+                <input type="text" id="bag_edit_long_name" name="long_name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 <p class="text-xs text-gray-400 mt-1"><?= Locale::get('group_long_name_hint') ?></p>
             </div>
 
             <div class="mb-4">
-                <label for="edit_description" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('group_description') ?></label>
-                <textarea id="edit_description" name="description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                <label for="bag_edit_description" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('group_description') ?></label>
+                <textarea id="bag_edit_description" name="description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
             </div>
 
             <div class="mb-4">
@@ -286,9 +286,9 @@ function openEditBagModal(bagId) {
                 return;
             }
             
-            document.getElementById('edit_name').value = data.name || '';
-            document.getElementById('edit_long_name').value = data.long_name || '';
-            document.getElementById('edit_description').value = data.description || '';
+            document.getElementById('bag_edit_name').value = data.name || '';
+            document.getElementById('bag_edit_long_name').value = data.long_name || '';
+            document.getElementById('bag_edit_description').value = data.description || '';
             document.getElementById('bag_edit_status').value = (data.status !== undefined && data.status !== null) ? String(data.status) : '1';
             document.getElementById('bag_edit_status_hidden').value = (data.status !== undefined && data.status !== null) ? String(data.status) : '1';
             

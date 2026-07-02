@@ -68,9 +68,11 @@ class BagController
             $this->bag->picture = $uploaded;
         }
 
-        if ($this->bag->create()) {
+        $newBagId = $this->bag->create();
+        if ($newBagId) {
+            $this->bag->id = $newBagId;
             // Add superadmin to the new group
-            $this->bag->addUserToBag(Auth::getUserId(), $this->bag->id);
+            $this->bag->addUserToBag(Auth::getUserId(), $newBagId);
             
             ActivityLog::log('bag_created', null, null,
                 ['bag_id' => $this->bag->id, 'name' => $this->bag->name]);
@@ -189,6 +191,11 @@ class BagController
         }
 
         if ($this->bag->update()) {
+            // When re-enabling a bag, ensure superadmin is in bag_user
+            if ($this->bag->status == 1 && $existingBag['status'] == 0) {
+                $this->bag->addUserToBag(Auth::getUserId(), $id);
+            }
+            
             ActivityLog::log('bag_updated', null, null,
                 $logPayload,
                 !empty($changes) ? $changes : null);

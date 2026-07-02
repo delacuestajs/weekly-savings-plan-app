@@ -102,9 +102,9 @@ class Bag
 
         $stmt = $this->conn->prepare($query);
 
-        $this->name = htmlspecialchars(strip_tags($this->name ?? ''));
-        $this->long_name = $this->long_name ? htmlspecialchars(strip_tags($this->long_name)) : null;
-        $this->description = $this->description ? htmlspecialchars(strip_tags($this->description)) : null;
+        $this->name = strip_tags($this->name ?? '');
+        $this->long_name = $this->long_name ? strip_tags($this->long_name) : null;
+        $this->description = $this->description ? strip_tags($this->description) : null;
 
         $stmt->bindParam(':name', $this->name);
         $stmt->bindParam(':long_name', $this->long_name);
@@ -128,9 +128,9 @@ class Bag
 
         $stmt = $this->conn->prepare($query);
 
-        $this->name = htmlspecialchars(strip_tags($this->name ?? ''));
-        $this->long_name = $this->long_name ? htmlspecialchars(strip_tags($this->long_name)) : null;
-        $this->description = $this->description ? htmlspecialchars(strip_tags($this->description)) : null;
+        $this->name = strip_tags($this->name ?? '');
+        $this->long_name = $this->long_name ? strip_tags($this->long_name) : null;
+        $this->description = $this->description ? strip_tags($this->description) : null;
 
         // Clear deleted_at when enabling (status=1), set when disabling (status=0)
         $deletedAt = ($this->status == 1) ? null : date('Y-m-d H:i:s');

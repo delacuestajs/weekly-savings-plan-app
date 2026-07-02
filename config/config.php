@@ -7,7 +7,7 @@ return [
     'password' => '',
     
     // App version and build info
-    'app_version' => getenv('APP_VERSION') ?: '0.9.0',
-    'app_build_date' => getenv('APP_BUILD_DATE') ?: '2026-06-27 03:23:39',
-    'app_commit_hash' => 'fdddf9c',
+    'app_version' => getenv('APP_VERSION') ?: '1.0.1',
+    'app_build_date' => getenv('APP_BUILD_DATE') ?: '2026-07-02 12:27:00',
+    'app_commit_hash' => '74c3d56',
 ];

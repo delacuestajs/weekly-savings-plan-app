@@ -193,7 +193,7 @@ Database migrations are located in the `database/` directory.
 
 ## Version
 
-Current version: 1.0.0
+Current version: 1.0.1
 
 ## License
 
