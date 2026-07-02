@@ -27,7 +27,11 @@ class Database
             );
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
-            echo "Connection Error: " . $e->getMessage();
+            // Log error details for debugging
+            error_log("Database connection error: " . $e->getMessage());
+            // Show generic message to user
+            echo "A database error occurred. Please try again later.";
+            exit;
         }
         return $this->conn;
     }

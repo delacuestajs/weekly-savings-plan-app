@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This guide covers two methods to deploy the PHP application to a remote Docker server.
+This guide covers deployment methods for the PHP application to a remote Docker server.
 
 ---
 
@@ -32,6 +32,9 @@ DB_NAME=savings_db
 DB_USERNAME=root
 DB_PASSWORD=your_secure_password
 DB_ROOT_PASSWORD=your_root_password
+DEFAULT_PASSWORD=abcd1234
+APP_VERSION=1.0.0
+APP_BUILD_DATE=2026-07-01 00:00:00
 ```
 
 ### 2. Environment Variables Reference
@@ -45,6 +48,9 @@ DB_ROOT_PASSWORD=your_root_password
 | `DB_USERNAME` | MySQL username | `root` |
 | `DB_PASSWORD` | MySQL password | (required) |
 | `DB_ROOT_PASSWORD` | MySQL root password | (required) |
+| `DEFAULT_PASSWORD` | Default password for new users | `abcd1234` |
+| `APP_VERSION` | Application version | `1.0.0` |
+| `APP_BUILD_DATE` | Build timestamp | (auto-generated) |
 
 ### 3. Timezone Configuration
 
@@ -268,21 +274,41 @@ docker --context remote compose --env-file .env up -d --build
 
 ---
 
-## Database Schema Fix
+## Database Access
 
-If you encounter `Unknown column 'username'` errors, the schema needs updating:
+### Remote MySQL Access
 
-```sql
-ALTER TABLE users 
-ADD COLUMN username VARCHAR(100) DEFAULT NULL AFTER lastname,
-ADD COLUMN role TINYINT DEFAULT 0 AFTER multiplier,
-ADD COLUMN password VARCHAR(255) NOT NULL AFTER role;
+The MySQL port is exposed on port 59103 for external access:
+
+| Setting | Value |
+|---------|-------|
+| Host | Remote server IP |
+| Port | 59103 |
+| Database | savings_db |
+| Username | root |
+| Password | (from .env DB_ROOT_PASSWORD) |
+
+### Docker Compose Configuration
+
+```yaml
+services:
+  db:
+    image: mysql:8.0
+    ports:
+      - "59103:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
 ```
 
-Run inside the DB container:
+### Running SQL Commands
 
 ```bash
-docker --context remote exec -it <db_container> mysql -u root -p<password> <database> -e "ALTER TABLE users ADD COLUMN username VARCHAR(100) DEFAULT NULL AFTER lastname, ADD COLUMN role TINYINT DEFAULT 0 AFTER multiplier, ADD COLUMN password VARCHAR(255) NOT NULL AFTER role;"
+# Via Docker context
+docker --context remote exec oc-test-php-db-1 mysql -uroot -proot savings_db -e "SQL HERE"
+
+# Via external client
+mysql -h <REMOTE_IP> -P 59103 -uroot -p<password> savings_db
 ```
 
 ---
@@ -295,34 +321,11 @@ After deployment:
 |---------|-----|
 | App (HTTPS) | `https://your-domain.com` |
 | App (LAN) | `http://<LOCAL_IP>:9283` |
-
----
-
-## Comparison
-
-| Feature | Docker Context | SSH |
-|---------|---------------|-----|
-| Setup complexity | Medium | Low |
-| Security | Exposes Docker TCP | Uses SSH encryption |
-| Speed | Faster | Slower (SSH overhead) |
-| File transfer | Not built-in | SCP/rsync |
-| Use case | Dev/CI environments | Production |
-
----
-
-## Security Notes
-
-- **Docker Context (TCP)**: Port 2375 is unencrypted. Use TLS (port 2376) in production.
-- **SSH**: More secure, but requires password handling or SSH keys.
-- Consider using SSH keys instead of passwords for production environments.
-- **HTTPS**: Use Caddy or similar reverse proxy for production deployments.
-- **Environment Variables**: Never commit `.env` files to version control.
+| MySQL (Remote) | `<REMOTE_IP>:59103` |
 
 ---
 
 ## Security Features
-
-The application includes the following security measures:
 
 ### Authentication & Sessions
 - CSRF tokens on all forms (validated on POST requests)
@@ -336,6 +339,7 @@ The application includes the following security measures:
 - XSS prevention via htmlspecialchars output escaping
 - Server-side file upload validation (MIME type + extension whitelist)
 - Password complexity requirements (minimum 8 characters)
+- Input trimming to prevent whitespace issues
 
 ### HTTP Security Headers
 Configured in Caddyfile:
@@ -358,19 +362,22 @@ Permissions-Policy: camera=(), microphone=(), geolocation=()
 
 ---
 
-## File Structure
+## Comparison
 
-```
-.
-├── .env.example        # Example environment variables (commit this)
-├── .env                # Actual environment variables (NEVER commit)
-├── .gitignore          # Git ignore rules
-├── docker-compose.yml  # Docker Compose configuration
-├── caddy/
-│   └── Caddyfile       # Caddy reverse proxy config
-├── config/
-│   └── database.php    # Database connection (reads env vars)
-├── database/
-│   └── schema.sql      # Database schema
-└── secrets/            # Legacy secrets (can be removed)
-```
+| Feature | Docker Context | SSH |
+|---------|---------------|-----|
+| Setup complexity | Medium | Low |
+| Security | Exposes Docker TCP | Uses SSH encryption |
+| Speed | Faster | Slower (SSH overhead) |
+| File transfer | Not built-in | SCP/rsync |
+| Use case | Dev/CI environments | Production |
+
+---
+
+## Security Notes
+
+- **Docker Context (TCP)**: Port 2375 is unencrypted. Use TLS (port 2376) in production.
+- **SSH**: More secure, but requires password handling or SSH keys.
+- Consider using SSH keys instead of passwords for production environments.
+- **HTTPS**: Use Caddy or similar reverse proxy for production deployments.
+- **Environment Variables**: Never commit `.env` files to version control.

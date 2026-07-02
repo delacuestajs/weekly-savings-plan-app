@@ -4,6 +4,7 @@
     <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-6"><?= Locale::get('edit') ?> <?= Locale::get('payments') ?></h1>
 
     <form action="index.php?action=update&id=<?= $saving['id'] ?>&return=<?= urlencode($_SERVER['HTTP_REFERER'] ?? 'index.php?action=payments') ?>" method="POST" enctype="multipart/form-data" class="max-w-lg">
+        <?= Auth::csrfField() ?>
         <div class="mb-4">
             <label for="user_id" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('user') ?></label>
             <div class="flex items-center gap-3">
@@ -34,7 +35,9 @@
             
             if (user.picture) {
                 const img = document.createElement('img');
-                img.src = 'uploads/' + user.picture;
+                // Use thumbnail if available
+                const thumbPicture = user.picture.replace(/\.[^.]+$/, '_thumb.jpg');
+                img.src = 'uploads/' + thumbPicture;
                 img.alt = user.firstname + ' ' + user.lastname;
                 img.className = 'w-12 h-12 rounded-full object-cover';
                 img.onerror = function() {

@@ -50,13 +50,13 @@ class WeeklySaving
         return $months[$month] ?? date('M', mktime(0, 0, 0, $month, 1));
     }
 
-    public function getWeeklyOverview($year = null, $userId = null)
+    public function getWeeklyOverview($year = null, $userId = null, $bagId = null)
     {
         if ($year === null) {
             $year = date('Y');
         }
 
-        $multiplier = 1;
+        $multiplier = 0;
         $usersMultipliers = [];
         
         if ($userId !== null) {
@@ -69,8 +69,19 @@ class WeeklySaving
                 $multiplier = max(1, (int)$user['multiplier']);
             }
         } else {
-            $usersQuery = "SELECT id, firstname, lastname, multiplier FROM users WHERE status = 1 AND deleted_at IS NULL";
+            // Exclude superadmin (role=3) from combined totals
+            $usersQuery = "SELECT id, firstname, lastname, multiplier FROM users WHERE status = 1 AND deleted_at IS NULL AND role != 3";
+            $usersParams = [];
+            
+            if ($bagId !== null) {
+                $usersQuery .= " AND bag_id = :bag_id";
+                $usersParams[':bag_id'] = $bagId;
+            }
+            
             $usersStmt = $this->conn->prepare($usersQuery);
+            foreach ($usersParams as $key => $value) {
+                $usersStmt->bindValue($key, $value);
+            }
             $usersStmt->execute();
             while ($u = $usersStmt->fetch(PDO::FETCH_ASSOC)) {
                 $usersMultipliers[] = $u;
@@ -84,7 +95,7 @@ class WeeklySaving
             }
         }
 
-        $totalPaid = $this->getTotalPaid($userId);
+        $totalPaid = $this->getTotalPaid($userId, $bagId);
         $weeks = [];
 
         $jan1 = new DateTime("$year-01-01");
@@ -120,7 +131,16 @@ class WeeklySaving
             ];
         }
 
-        $activities = $this->getActivitiesByYear($year);
+        $activities = $this->getActivitiesByYear($year, $bagId);
+        
+        // Load expenses for activities when no user_id (all users combined)
+        $activityExpenses = [];
+        $confirmedExpensesTotals = [];
+        if ($userId === null && !empty($activities)) {
+            $activityIds = array_column($activities, 'id');
+            $activityExpenses = $this->getExpensesByActivityIds($activityIds);
+            $confirmedExpensesTotals = $this->getConfirmedExpensesTotalByActivityIds($activityIds);
+        }
         
         $grouped = [];
         for ($m = 1; $m <= 12; $m++) {
@@ -144,12 +164,19 @@ class WeeklySaving
             $monthKey = (int)date('n', strtotime($activity['activity_date']));
             $activity['base_value'] = $activity['value'];
             $activity['multiplied_value'] = $activity['value'] * $multiplier;
+            
+            // Add expenses data (only for all users combined view)
+            $actId = $activity['id'];
+            $activity['expenses'] = $activityExpenses[$actId] ?? [];
+            $activity['confirmed_expenses'] = $confirmedExpensesTotals[$actId] ?? 0;
+            $activity['net_value'] = $activity['multiplied_value'] - $activity['confirmed_expenses'];
+            
             $activity['paid'] = false;
-            $activity['pending'] = $activity['multiplied_value'];
+            $activity['pending'] = $activity['net_value'];
             $activity['partial'] = false;
             $activity['paid_amount'] = 0;
             $grouped[$monthKey]['activities'][] = $activity;
-            $grouped[$monthKey]['subtotal'] += $activity['multiplied_value'];
+            $grouped[$monthKey]['subtotal'] += $activity['net_value'];
         }
 
         $remainingPayment = $totalPaid;
@@ -203,10 +230,13 @@ class WeeklySaving
 
         $totalYearGoal = 52 * 53 / 2 * 1000 * $multiplier;
         $totalActivities = 0;
+        $totalConfirmedExpenses = 0;
         foreach ($activities as $activity) {
             $totalActivities += $activity['value'] * $multiplier;
+            $totalConfirmedExpenses += ($confirmedExpensesTotals[$activity['id']] ?? 0);
         }
-        $totalYearGoalWithActivities = $totalYearGoal + $totalActivities;
+        $totalActivitiesNet = max(0, $totalActivities - $totalConfirmedExpenses);
+        $totalYearGoalWithActivities = $totalYearGoal + $totalActivitiesNet;
         $totalPaidAmount = min($totalPaid, $totalYearGoalWithActivities);
 
         return [
@@ -218,6 +248,8 @@ class WeeklySaving
             'total_paid' => $totalPaid,
             'total_year_goal' => $totalYearGoal,
             'total_activities' => $totalActivities,
+            'total_confirmed_expenses' => $totalConfirmedExpenses,
+            'total_activities_net' => $totalActivitiesNet,
             'total_year_goal_with_activities' => $totalYearGoalWithActivities,
             'total_pending' => max(0, $totalYearGoalWithActivities - $totalPaidAmount),
             'progress_percent' => $totalYearGoalWithActivities > 0 ? round(($totalPaidAmount / $totalYearGoalWithActivities) * 100, 1) : 0,
@@ -245,20 +277,30 @@ class WeeklySaving
         return $startMonth;
     }
 
-    public function getTotalPaid($userId = null)
+    public function getTotalPaid($userId = null, $bagId = null)
     {
-        $query = "SELECT COALESCE(SUM(amount), 0) as total 
-                  FROM savings 
-                  WHERE status = 'verified' AND is_active = 1 AND deleted_at IS NULL";
+        $query = "SELECT COALESCE(SUM(s.amount), 0) as total 
+                  FROM savings s
+                  JOIN users u ON s.user_id = u.id AND u.status = 1 AND u.deleted_at IS NULL
+                  WHERE s.status = 'verified' AND s.is_active = 1 AND s.deleted_at IS NULL
+                  AND u.role != 3";
+        
+        $params = [];
         
         if ($userId !== null) {
-            $query .= " AND user_id = :user_id";
+            $query .= " AND s.user_id = :user_id";
+            $params[':user_id'] = $userId;
+        }
+        
+        if ($bagId !== null) {
+            $query .= " AND s.bag_id = :bag_id";
+            $params[':bag_id'] = $bagId;
         }
         
         $stmt = $this->conn->prepare($query);
         
-        if ($userId !== null) {
-            $stmt->bindParam(':user_id', $userId);
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
         }
         
         $stmt->execute();
@@ -291,14 +333,66 @@ class WeeklySaving
         return min(52, intdiv($diff, 7) + 1);
     }
 
-    private function getActivitiesByYear($year)
+    private function getActivitiesByYear($year, $bagId = null)
     {
         $query = "SELECT * FROM activities 
-                  WHERE YEAR(activity_date) = :year AND is_active = 1 AND deleted_at IS NULL
-                  ORDER BY activity_date ASC";
+                  WHERE YEAR(activity_date) = :year AND is_active = 1 AND deleted_at IS NULL";
+        
+        $params = [':year' => $year];
+        
+        if ($bagId !== null) {
+            $query .= " AND bag_id = :bag_id";
+            $params[':bag_id'] = $bagId;
+        }
+        
+        $query .= " ORDER BY activity_date ASC";
+        
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':year', $year);
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getExpensesByActivityIds($activityIds)
+    {
+        if (empty($activityIds)) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($activityIds), '?'));
+        $query = "SELECT * FROM expenses 
+                  WHERE activity_id IN ($placeholders) AND is_active = 1 AND deleted_at IS NULL
+                  ORDER BY created_at ASC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute($activityIds);
+        
+        $expenses = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $expenses[$row['activity_id']][] = $row;
+        }
+        return $expenses;
+    }
+
+    public function getConfirmedExpensesTotalByActivityIds($activityIds)
+    {
+        if (empty($activityIds)) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($activityIds), '?'));
+        $query = "SELECT activity_id, COALESCE(SUM(amount), 0) as total 
+                  FROM expenses 
+                  WHERE activity_id IN ($placeholders) AND status = 'confirmed' AND is_active = 1 AND deleted_at IS NULL
+                  GROUP BY activity_id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute($activityIds);
+        
+        $totals = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $totals[$row['activity_id']] = $row['total'];
+        }
+        return $totals;
     }
 }

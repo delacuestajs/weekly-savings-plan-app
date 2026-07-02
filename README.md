@@ -1,40 +1,55 @@
 # Weekly Savings Plan App
 
-A simple web application to track weekly savings payments for individuals or groups.
+A web application to track weekly savings payments for groups of users with multi-tenancy support.
 
 ## Description
 
-The Weekly Savings Plan App helps users track their savings goals on a weekly basis. Each week has a savings goal that increases gradually (Week 1 = $1,000, Week 2 = $2,000, etc.). The app allows multiple users to participate with customizable multipliers and tracks payments against weekly goals.
+The Weekly Savings Plan App helps groups of users track their savings goals on a weekly basis. Each week has a savings goal that increases gradually (Week 1 = $1,000, Week 2 = $2,000, etc.). The app supports multiple independent groups (bags), each with their own users, payments, activities, and expenses.
 
 ## Default Login
 
 - **Username**: admin
-- **Password**: password
+- **Password**: abcd1234
 
 You will be prompted to change your password on first login.
 
 ## Features
 
-- **Weekly Savings Plan**: Visual calendar view showing savings progress for each week of the year
+- **Multi-Group Support**: Independent groups (bags) with isolated data per group
+- **Weekly Savings Plan**: Visual calendar view showing savings progress for each week
 - **Payment Tracking**: Record payments and track which weeks are paid, partially paid, or unpaid
-- **Multi-User Support**: Multiple users can participate, each with their own savings multiplier
-- **Activities**: Extra charges or expenses that are paid after all weekly goals are covered
-- **Role-Based Access**: Admin and normal user roles with appropriate permissions
-- **User Management**: Create, edit, and manage users with unique usernames
-- **Password Security**: Secure login system with password change functionality
-- **Activity Logs**: Track all user actions with timestamp, action type, and details (admin only)
+- **Multi-User Support**: Multiple users per group, each with their own savings multiplier
+- **Activities & Expenses**: Extra charges or expenses tracked per activity
+- **Role-Based Access**: Superadmin, Admin, Normal, and Disabled roles
+- **User Management**: Create, edit, and manage users with unique usernames per group
+- **Group Management**: Create, edit, disable, and truncate groups with data export
+- **Activity Logs**: Track all actions with timestamp, action type, and details
 - **HTTPS Support**: Automatic SSL certificates via Caddy reverse proxy
-- **Bilingual Support**: Available in English and Spanish
+- **Bilingual**: English and Spanish
 - **Responsive Design**: Works on desktop and mobile devices
-- **Color-Coded Progress**: Green (paid), yellow (partial), red (unpaid) indicators
+- **Profile Pictures**: Users and groups can have profile pictures with thumbnails
+
+## Roles
+
+| Role | Value | Access |
+|------|-------|--------|
+| Disabled | 0 | Cannot login |
+| Normal | 1 | Own payments only |
+| Admin | 2 | Full access except group CRUD |
+| Superadmin | 3 | Everything + group management |
 
 ## Usage
+
+### Groups (Bags)
+- Each group is an independent savings community
+- Users belong to one group (except superadmins who can access multiple)
+- Superadmins can create, edit, disable, and truncate groups
+- Truncating creates a SQL backup before deleting all data
 
 ### Weekly Plan
 - View savings progress for each week of the year
 - Filter by user or view all users combined
 - See color-coded status for each week
-- Track activities that are paid after weekly goals
 
 ### Payments
 - Record new payments with user, amount, and payment method
@@ -43,21 +58,20 @@ You will be prompted to change your password on first login.
 - Verify payments to lock them from further edits
 
 ### User Management (Admin Only)
-- Create new users with unique usernames
+- Create new users with unique usernames (per group)
 - Set savings multipliers for each user
 - Reset user passwords
 - Enable/disable user accounts
 
-### Activities
+### Activities & Expenses
 - Create extra charges or expenses
-- Activities are paid after all weekly goals are covered
 - Track activity payments separately from weekly goals
+- Confirm expenses to lock them
 
 ### Activity Logs (Admin Only)
-- View a log of all actions performed in the system
+- View a log of all actions in the current group
 - Filter by date range, user, or action type
 - Track who performed each action vs. who owns the record
-- Sensitive data (passwords) is automatically redacted
 
 ## Requirements
 
@@ -93,10 +107,14 @@ For detailed deployment instructions (remote server, HTTPS, Docker context), see
 ```
 weekly-savings-plan-app/
 ├── config/               # Configuration files
-│   └── database.php      # Database connection (reads env vars)
+│   ├── database.php      # Database connection (reads env vars)
+│   └── config.php        # App version and build info
 ├── controllers/          # Application controllers
 │   ├── ActivityController.php
 │   ├── Auth.php
+│   ├── BagController.php
+│   ├── DashboardController.php
+│   ├── ExpenseController.php
 │   ├── LogController.php
 │   ├── SavingController.php
 │   └── UserController.php
@@ -109,75 +127,62 @@ weekly-savings-plan-app/
 ├── models/               # Data models
 │   ├── Activity.php
 │   ├── ActivityLog.php
+│   ├── Bag.php
+│   ├── Expense.php
 │   ├── Saving.php
 │   ├── User.php
 │   └── WeeklySaving.php
-├── views/                # View templates
+├── views/                # View templates (list views only, CRUD is modal)
 │   ├── activities/
+│   │   └── list.php
+│   ├── bags/
+│   │   └── list.php
 │   ├── logs/
+│   │   └── list.php
 │   ├── users/
-│   ├── create.php
-│   ├── edit.php
+│   │   └── list.php
+│   ├── dashboard.php
 │   ├── footer.php
-│   ├── header.php
-│   ├── list.php
+│   ├── header.php        # Global modals + navigation
+│   ├── list.php          # Payments list
 │   ├── login.php
 │   └── weekly.php
 ├── caddy/                # Caddy reverse proxy config
 │   └── Caddyfile
-├── uploads/              # User uploads directory
-├── secrets/              # Docker secrets (gitignored)
-├── local/                # Local config with sensitive data (gitignored)
+├── uploads/              # User/bag uploads
+│   ├── bags/             # Bag pictures
+│   └── dumps/            # Truncate backup files
 ├── .env.example          # Example environment variables
 ├── .env                  # Actual environment variables (gitignored)
 ├── docker-compose.yml
 ├── Dockerfile
-├── index.php             # Main entry point
+├── index.php             # Main entry point + router
 └── locale.php            # Locale and timezone management
 ```
 
-## Customization
-
-### Timezone
-The application uses `America/Bogota` (UTC-5) by default. To change it, edit `locale.php`:
-```php
-date_default_timezone_set('America/New_York');
-```
-See [DEPLOYMENT.md](DEPLOYMENT.md) for a list of timezone identifiers.
-
-### Payment Methods
-The app supports two payment methods:
-- Cash
-- Bank Transfer
-
-To modify payment methods, update the locale files in `lang/en.php` and `lang/es.php`.
-
-### Multiplier
-The multiplier determines how many times a user saves per week. For example:
-- Multiplier 1: Standard weekly goal
-- Multiplier 2: Double the weekly goal
-- Multiplier 1.5: 1.5 times the weekly goal
-
 ## Database
 
-The application uses MySQL 8.0 with the following main tables:
+MySQL 8.0 with the following main tables:
 - `users` - User accounts and settings
 - `savings` - Payment records
 - `activities` - Extra charges or expenses
+- `expenses` - Individual expenses per activity
 - `activity_logs` - Action audit trail
+- `bags` - Groups/organizations
+- `bag_user` - Superadmin to group many-to-many relationship
 
 Database migrations are located in the `database/` directory.
 
 ## Security
 
 - All passwords are hashed using bcrypt
-- Role-based access control (admin/normal/disabled)
+- Role-based access control (superadmin/admin/normal/disabled)
 - Session-based authentication with session fixation protection
 - CSRF protection on all forms
 - Rate limiting on login (5 attempts per 15 minutes)
 - Session timeout (30 minutes inactivity)
 - Secure session cookies (httponly, secure, SameSite=Lax)
-- Input validation and sanitization
+- Input validation and sanitization with trim()
 - SQL injection prevention using prepared statements
 - XSS prevention using htmlspecialchars output escaping
 - Server-side file upload validation (MIME type + extension whitelist)
@@ -186,22 +191,10 @@ Database migrations are located in the `database/` directory.
 - HTTPS with automatic SSL certificate renewal (Caddy + Let's Encrypt)
 - Password complexity requirements (minimum 8 characters)
 
-## Browser Support
+## Version
 
-The application supports all modern browsers:
-- Chrome
-- Firefox
-- Safari
-- Edge
+Current version: 1.0.0
 
 ## License
 
 This project is open source and available under the [MIT License](LICENSE).
-
-## Support
-
-For support or questions, please open an issue on the GitHub repository.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.

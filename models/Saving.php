@@ -9,6 +9,7 @@ class Saving
 
     public $id;
     public $user_id;
+    public $bag_id;
     public $description;
     public $amount;
     public $payment_method;
@@ -26,14 +27,19 @@ class Saving
         $this->conn = $database->getConnection();
     }
 
-    public function getAll($filters = [])
+    public function getAll($filters = [], $bagId = null)
     {
         $query = "SELECT s.*, u.firstname, u.lastname, u.username, u.picture 
                   FROM {$this->table} s 
-                  LEFT JOIN users u ON s.user_id = u.id AND u.status = 1 AND u.deleted_at IS NULL
+                  INNER JOIN users u ON s.user_id = u.id AND u.status = 1 AND u.deleted_at IS NULL
                   WHERE s.is_active = 1 AND s.deleted_at IS NULL";
         
         $params = [];
+        
+        if ($bagId !== null) {
+            $query .= " AND s.bag_id = :bag_id";
+            $params[':bag_id'] = $bagId;
+        }
         
         if (!empty($filters['user_id'])) {
             $query .= " AND s.user_id = :user_id";
@@ -86,8 +92,18 @@ class Saving
             'application/msword',
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
         ];
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'doc', 'docx'];
 
-        if (!in_array($file['type'], $allowedTypes)) {
+        // Server-side MIME type validation
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $realType = $finfo->file($file['tmp_name']);
+        if (!in_array($realType, $allowedTypes)) {
+            return false;
+        }
+
+        // Extension validation
+        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        if (!in_array($extension, $allowedExtensions)) {
             return false;
         }
 
@@ -100,7 +116,6 @@ class Saving
             mkdir($this->uploadDir, 0755, true);
         }
 
-        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
         $filename = uniqid('attachment_', true) . '.' . $extension;
         $filepath = $this->uploadDir . $filename;
 
@@ -120,15 +135,16 @@ class Saving
 
     public function create()
     {
-        $query = "INSERT INTO {$this->table} (user_id, description, amount, payment_method, status, notes, attachment, created_at) 
-                  VALUES (:user_id, :description, :amount, :payment_method, :status, :notes, :attachment, :created_at)";
+        $query = "INSERT INTO {$this->table} (user_id, bag_id, description, amount, payment_method, status, notes, attachment, created_at) 
+                  VALUES (:user_id, :bag_id, :description, :amount, :payment_method, :status, :notes, :attachment, :created_at)";
 
         $stmt = $this->conn->prepare($query);
 
-        $this->description = htmlspecialchars(strip_tags($this->description));
-        $this->notes = htmlspecialchars(strip_tags($this->notes));
+        $this->description = htmlspecialchars(strip_tags($this->description ?? ''));
+        $this->notes = $this->notes ? htmlspecialchars(strip_tags($this->notes)) : null;
 
         $stmt->bindParam(':user_id', $this->user_id);
+        $stmt->bindParam(':bag_id', $this->bag_id);
         $stmt->bindParam(':description', $this->description);
         $stmt->bindParam(':amount', $this->amount);
         $stmt->bindParam(':payment_method', $this->payment_method);
@@ -152,8 +168,8 @@ class Saving
 
         $stmt = $this->conn->prepare($query);
 
-        $this->description = htmlspecialchars(strip_tags($this->description));
-        $this->notes = htmlspecialchars(strip_tags($this->notes));
+        $this->description = htmlspecialchars(strip_tags($this->description ?? ''));
+        $this->notes = $this->notes ? htmlspecialchars(strip_tags($this->notes)) : null;
 
         $stmt->bindParam(':user_id', $this->user_id);
         $stmt->bindParam(':description', $this->description);
@@ -176,18 +192,29 @@ class Saving
         return $stmt->execute();
     }
 
-    public function getTotalSavings($userId = null)
+    public function getTotalSavings($userId = null, $bagId = null)
     {
-        $query = "SELECT COALESCE(SUM(amount), 0) as total FROM {$this->table} WHERE status = 'verified' AND is_active = 1 AND deleted_at IS NULL";
+        $query = "SELECT COALESCE(SUM(s.amount), 0) as total 
+                  FROM {$this->table} s
+                  INNER JOIN users u ON s.user_id = u.id AND u.status = 1 AND u.deleted_at IS NULL
+                  WHERE s.status = 'verified' AND s.is_active = 1 AND s.deleted_at IS NULL";
+        
+        $params = [];
         
         if ($userId !== null) {
-            $query .= " AND user_id = :user_id";
+            $query .= " AND s.user_id = :user_id";
+            $params[':user_id'] = $userId;
+        }
+        
+        if ($bagId !== null) {
+            $query .= " AND s.bag_id = :bag_id";
+            $params[':bag_id'] = $bagId;
         }
         
         $stmt = $this->conn->prepare($query);
         
-        if ($userId !== null) {
-            $stmt->bindParam(':user_id', $userId);
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
         }
         
         $stmt->execute();

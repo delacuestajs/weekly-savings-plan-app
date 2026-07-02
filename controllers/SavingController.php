@@ -43,9 +43,10 @@ class SavingController
             $filters['user_id'] = Auth::getUserId();
         }
         
-        $savings = $this->saving->getAll($filters);
-        $total = $this->saving->getTotalSavings(!Auth::isAdmin() ? Auth::getUserId() : null);
-        $usersList = $this->user->getAll()->fetchAll(PDO::FETCH_ASSOC);
+        $bagId = Auth::getBagId();
+        $savings = $this->saving->getAll($filters, $bagId);
+        $total = $this->saving->getTotalSavings(!Auth::isAdmin() ? Auth::getUserId() : null, $bagId);
+        $usersList = $this->user->getAll($bagId)->fetchAll(PDO::FETCH_ASSOC);
         require __DIR__ . '/../views/list.php';
     }
 
@@ -58,14 +59,16 @@ class SavingController
             $userId = Auth::getUserId();
         }
         
-        $data = $this->weeklySaving->getWeeklyOverview($year, $userId);
-        $usersList = $this->user->getAll()->fetchAll(PDO::FETCH_ASSOC);
+        $bagId = Auth::getBagId();
+        $data = $this->weeklySaving->getWeeklyOverview($year, $userId, $bagId);
+        $usersList = $this->user->getAll($bagId)->fetchAll(PDO::FETCH_ASSOC);
         require __DIR__ . '/../views/weekly.php';
     }
 
     public function create()
     {
-        $stmt = $this->user->getAll();
+        $bagId = Auth::getBagId();
+        $stmt = $this->user->getAll($bagId);
         $usersArray = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $usersData = [];
         foreach ($usersArray as $row) {
@@ -90,11 +93,12 @@ class SavingController
         }
         
         $this->saving->user_id = $_POST['user_id'];
-        $this->saving->description = $_POST['description'];
+        $this->saving->description = trim($_POST['description'] ?? '');
         $this->saving->amount = $_POST['amount'];
         $this->saving->payment_method = $_POST['payment_method'];
         $this->saving->status = 'unverified';
-        $this->saving->notes = $_POST['notes'];
+        $this->saving->notes = !empty($_POST['notes']) ? trim($_POST['notes']) : null;
+        $this->saving->bag_id = Auth::getBagId();
         $this->saving->created_at = !empty($_POST['created_at']) ? $_POST['created_at'] . ' 00:00:00' : date('Y-m-d H:i:s');
 
         $this->saving->attachment = null;
@@ -135,7 +139,8 @@ class SavingController
             exit;
         }
         
-        $stmt = $this->user->getAll();
+        $bagId = Auth::getBagId();
+        $stmt = $this->user->getAll($bagId);
         $usersArray = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $usersData = [];
         foreach ($usersArray as $row) {
@@ -159,11 +164,11 @@ class SavingController
         
         $this->saving->id = $id;
         $this->saving->user_id = !empty($_POST['user_id']) ? $_POST['user_id'] : null;
-        $this->saving->description = $_POST['description'];
+        $this->saving->description = trim($_POST['description'] ?? '');
         $this->saving->amount = $_POST['amount'];
         $this->saving->payment_method = $_POST['payment_method'];
         $this->saving->status = $_POST['status'];
-        $this->saving->notes = $_POST['notes'];
+        $this->saving->notes = !empty($_POST['notes']) ? trim($_POST['notes']) : null;
         $this->saving->created_at = !empty($_POST['created_at']) ? $_POST['created_at'] : date('Y-m-d H:i:s');
 
         $this->saving->attachment = $existingSaving['attachment'] ?? null;
@@ -274,6 +279,30 @@ class SavingController
             exit;
         }
         header('Location: index.php?action=payments&toast=error&message=' . urlencode(Locale::get('error_deleting')));
+        exit;
+    }
+
+    public function getJson($id)
+    {
+        Auth::requireLogin();
+        
+        header('Content-Type: application/json');
+        
+        $saving = $this->saving->getById($id);
+        if (!$saving) {
+            echo json_encode(['error' => 'not_found']);
+            exit;
+        }
+        
+        // Format date for input
+        if (!empty($saving['created_at'])) {
+            $dateObj = new DateTime($saving['created_at']);
+            $saving['created_at_formatted'] = $dateObj->format('Y-m-d');
+        } else {
+            $saving['created_at_formatted'] = date('Y-m-d');
+        }
+        
+        echo json_encode($saving);
         exit;
     }
 }

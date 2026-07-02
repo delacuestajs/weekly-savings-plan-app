@@ -23,9 +23,10 @@ class LogController
             'action' => $_GET['action'] ?? null,
         ];
 
-        $logs = $this->log->getAll($filters);
-        $actions = $this->log->getDistinctActions();
-        $users = $this->log->getDistinctUsers();
+        $bagId = Auth::getBagId();
+        $logs = $this->log->getAll($filters, $bagId);
+        $actions = $this->log->getDistinctActions($bagId);
+        $users = $this->log->getDistinctUsers($bagId);
 
         require __DIR__ . '/../views/logs/list.php';
     }

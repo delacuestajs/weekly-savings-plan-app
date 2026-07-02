@@ -2,21 +2,19 @@
 
 require_once __DIR__ . '/../config/database.php';
 
-class Activity
+class Expense
 {
     private $conn;
-    private $table = 'activities';
+    private $table = 'expenses';
 
     public $id;
+    public $activity_id;
     public $bag_id;
-    public $name;
     public $description;
-    public $value;
-    public $activity_date;
+    public $amount;
+    public $status;
     public $is_active;
     public $deleted_at;
-    public $created_at;
-    public $updated_at;
 
     public function __construct()
     {
@@ -24,19 +22,18 @@ class Activity
         $this->conn = $database->getConnection();
     }
 
-    public function getAll($bagId = null)
+    public function getAll($activityId = null)
     {
         $query = "SELECT * FROM {$this->table} 
                   WHERE is_active = 1 AND deleted_at IS NULL";
         
         $params = [];
-        
-        if ($bagId !== null) {
-            $query .= " AND bag_id = :bag_id";
-            $params[':bag_id'] = $bagId;
+        if ($activityId !== null) {
+            $query .= " AND activity_id = :activity_id";
+            $params[':activity_id'] = $activityId;
         }
         
-        $query .= " ORDER BY activity_date DESC, created_at DESC";
+        $query .= " ORDER BY created_at DESC";
         
         $stmt = $this->conn->prepare($query);
         foreach ($params as $key => $value) {
@@ -56,47 +53,36 @@ class Activity
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function getByYear($year)
+    public function getByActivityId($activityId)
     {
         $query = "SELECT * FROM {$this->table} 
-                  WHERE YEAR(activity_date) = :year AND is_active = 1 AND deleted_at IS NULL
-                  ORDER BY activity_date ASC";
+                  WHERE activity_id = :activity_id AND is_active = 1 AND deleted_at IS NULL
+                  ORDER BY created_at DESC";
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':year', $year);
+        $stmt->bindParam(':activity_id', $activityId);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getByMonth($year, $month)
+    public function getTotalByActivityId($activityId)
     {
-        $query = "SELECT * FROM {$this->table} 
-                  WHERE YEAR(activity_date) = :year AND MONTH(activity_date) = :month 
-                  AND is_active = 1 AND deleted_at IS NULL
-                  ORDER BY activity_date ASC";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':year', $year);
-        $stmt->bindParam(':month', $month);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    public function getTotalByYear($year, $bagId = null)
-    {
-        $query = "SELECT COALESCE(SUM(value), 0) as total 
+        $query = "SELECT COALESCE(SUM(amount), 0) as total 
                   FROM {$this->table} 
-                  WHERE YEAR(activity_date) = :year AND is_active = 1 AND deleted_at IS NULL";
-        
-        $params = [':year' => $year];
-        
-        if ($bagId !== null) {
-            $query .= " AND bag_id = :bag_id";
-            $params[':bag_id'] = $bagId;
-        }
-        
+                  WHERE activity_id = :activity_id AND is_active = 1 AND deleted_at IS NULL AND status = 'confirmed'";
         $stmt = $this->conn->prepare($query);
-        foreach ($params as $key => $value) {
-            $stmt->bindValue($key, $value);
-        }
+        $stmt->bindParam(':activity_id', $activityId);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result['total'];
+    }
+
+    public function getAllTotalByActivityId($activityId)
+    {
+        $query = "SELECT COALESCE(SUM(amount), 0) as total 
+                  FROM {$this->table} 
+                  WHERE activity_id = :activity_id AND is_active = 1 AND deleted_at IS NULL";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':activity_id', $activityId);
         $stmt->execute();
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result['total'];
@@ -104,20 +90,18 @@ class Activity
 
     public function create()
     {
-        $query = "INSERT INTO {$this->table} (bag_id, name, description, value, activity_date, created_at) 
-                  VALUES (:bag_id, :name, :description, :value, :activity_date, :created_at)";
+        $query = "INSERT INTO {$this->table} (activity_id, bag_id, description, amount, status) 
+                  VALUES (:activity_id, :bag_id, :description, :amount, :status)";
 
         $stmt = $this->conn->prepare($query);
 
-        $this->name = htmlspecialchars(strip_tags($this->name));
         $this->description = htmlspecialchars(strip_tags($this->description));
 
+        $stmt->bindParam(':activity_id', $this->activity_id);
         $stmt->bindParam(':bag_id', $this->bag_id);
-        $stmt->bindParam(':name', $this->name);
         $stmt->bindParam(':description', $this->description);
-        $stmt->bindParam(':value', $this->value);
-        $stmt->bindParam(':activity_date', $this->activity_date);
-        $stmt->bindParam(':created_at', $this->created_at);
+        $stmt->bindParam(':amount', $this->amount);
+        $stmt->bindParam(':status', $this->status);
 
         if ($stmt->execute()) {
             return $this->conn->lastInsertId();
@@ -128,19 +112,27 @@ class Activity
     public function update()
     {
         $query = "UPDATE {$this->table} 
-                  SET name = :name, description = :description, value = :value, 
-                      activity_date = :activity_date, updated_at = NOW()
+                  SET description = :description, amount = :amount, updated_at = NOW()
                   WHERE id = :id";
 
         $stmt = $this->conn->prepare($query);
 
-        $this->name = htmlspecialchars(strip_tags($this->name));
         $this->description = htmlspecialchars(strip_tags($this->description));
 
-        $stmt->bindParam(':name', $this->name);
         $stmt->bindParam(':description', $this->description);
-        $stmt->bindParam(':value', $this->value);
-        $stmt->bindParam(':activity_date', $this->activity_date);
+        $stmt->bindParam(':amount', $this->amount);
+        $stmt->bindParam(':id', $this->id);
+
+        return $stmt->execute();
+    }
+
+    public function confirm()
+    {
+        $query = "UPDATE {$this->table} 
+                  SET status = 'confirmed', updated_at = NOW()
+                  WHERE id = :id AND status = 'pending'";
+
+        $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':id', $this->id);
 
         return $stmt->execute();
@@ -148,6 +140,12 @@ class Activity
 
     public function delete($id)
     {
+        // Check if expense is confirmed
+        $expense = $this->getById($id);
+        if ($expense && $expense['status'] === 'confirmed') {
+            return false; // Cannot delete confirmed expenses
+        }
+
         $query = "UPDATE {$this->table} SET is_active = 0, deleted_at = NOW() WHERE id = :id";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':id', $id);

@@ -4,10 +4,11 @@
     <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-6"><?= Locale::get('add_new_saving') ?></h1>
 
     <form action="index.php?action=store&return=<?= urlencode($_SERVER['HTTP_REFERER'] ?? 'index.php?action=payments') ?>" method="POST" enctype="multipart/form-data" class="max-w-lg" novalidate>
+        <?= Auth::csrfField() ?>
         <div class="mb-4">
             <label for="user_id" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('user') ?> *</label>
             <div class="flex items-center gap-3">
-                <select id="user_id" name="user_id" onchange="updateUserBadge(this)" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" <?= Auth::isAdmin() ? '' : 'disabled' ?>>
+                <select id="user_id" name="user_id" onchange="updateUserBadge(this)" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent <?= Auth::isAdmin() ? '' : 'bg-gray-100 text-gray-500 cursor-not-allowed opacity-70' ?>" <?= Auth::isAdmin() ? '' : 'disabled' ?>>
                     <option value=""><?= Locale::get('select_user') ?></option>
                 <?php foreach ($users as $userRow): ?>
                     <option value="<?= $userRow['id'] ?>" <?= (!Auth::isAdmin() && $userRow['id'] == Auth::getUserId()) ? 'selected' : '' ?>><?= htmlspecialchars($userRow['firstname'] . ' ' . $userRow['lastname']) ?><?= !empty($userRow['username']) ? ' (' . htmlspecialchars($userRow['username']) . ')' : '' ?></option>
@@ -37,7 +38,9 @@
             
             if (user.picture) {
                 const img = document.createElement('img');
-                img.src = 'uploads/' + user.picture;
+                // Use thumbnail if available
+                const thumbPicture = user.picture.replace(/\.[^.]+$/, '_thumb.jpg');
+                img.src = 'uploads/' + thumbPicture;
                 img.alt = user.firstname + ' ' + user.lastname;
                 img.className = 'w-12 h-12 rounded-full object-cover';
                 img.onerror = function() {

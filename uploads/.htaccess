@@ -1,0 +1,13 @@
+# Disable PHP execution in uploads directory
+php_flag engine off
+
+# Deny access to files with certain extensions
+<FilesMatch "\.(php|php3|php4|php5|phtml|pl|py|jsp|asp|htm|shtml|sh|cgi)$">
+    Deny from all
+</FilesMatch>
+
+# Prevent script execution
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule \.(php|php3|php4|php5|phtml|pl|py|jsp|asp|htm|shtml|sh|cgi)$ - [F,L]
+</IfModule>

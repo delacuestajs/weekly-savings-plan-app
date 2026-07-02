@@ -1,14 +1,18 @@
 <?php
 
+require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../models/ActivityLog.php';
 
 class UserController
 {
+    private $conn;
     private $user;
 
     public function __construct()
     {
+        $database = new Database();
+        $this->conn = $database->getConnection();
         $this->user = new User();
     }
 
@@ -19,30 +23,46 @@ class UserController
 
     public function index()
     {
-        $users = $this->user->getAll();
+        $bagId = Auth::getBagId();
+        $includeSuperAdmin = Auth::isSuperAdmin();
+        $users = $this->user->getAll($bagId, $includeSuperAdmin);
+        $usersWithVerifiedPayments = $this->getUsersWithVerifiedPayments();
         require __DIR__ . '/../views/users/list.php';
     }
 
-    public function create()
+    private function getUsersWithVerifiedPayments()
     {
-        require __DIR__ . '/../views/users/create.php';
+        $query = "SELECT DISTINCT s.user_id FROM savings s 
+                  INNER JOIN users u ON s.user_id = u.id AND u.status = 1 AND u.deleted_at IS NULL
+                  WHERE s.status = 'verified' AND s.is_active = 1 AND s.deleted_at IS NULL";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        $result = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        return $result;
     }
 
     public function store()
     {
         $returnUrl = $this->getReturnUrl();
         
-        $this->user->firstname = $_POST['firstname'];
-        $this->user->lastname = $_POST['lastname'];
-        $this->user->username = $_POST['username'] ?? null;
-        $this->user->telephone = $_POST['telephone'] ?? null;
-        $this->user->comments = $_POST['comments'] ?? null;
+        $this->user->firstname = trim($_POST['firstname'] ?? '');
+        $this->user->lastname = trim($_POST['lastname'] ?? '');
+        $this->user->username = !empty($_POST['username']) ? trim($_POST['username']) : null;
+        $this->user->telephone = !empty($_POST['telephone']) ? trim($_POST['telephone']) : null;
+        $this->user->comments = !empty($_POST['comments']) ? trim($_POST['comments']) : null;
         $this->user->multiplier = !empty($_POST['multiplier']) ? (int)$_POST['multiplier'] : 1;
         $this->user->role = !empty($_POST['role']) ? (int)$_POST['role'] : 1;
-        $this->user->password = 'password';
+        $this->user->bag_id = !empty($_POST['bag_id']) ? (int)$_POST['bag_id'] : Auth::getBagId();
+        $this->user->password = User::getDefaultPassword();
 
-        if (!empty($this->user->username) && $this->user->isUsernameTaken($this->user->username)) {
-            header('Location: index.php?module=user&action=create&toast=error&message=' . urlencode(Locale::get('username_taken')));
+        // Admin cannot create superadmin users
+        if ($this->user->role == 3 && !Auth::isSuperAdmin()) {
+            header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('admin_required')));
+            exit;
+        }
+
+        if (!empty($this->user->username) && $this->user->isUsernameTaken($this->user->username, null, $this->user->bag_id)) {
+            header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('username_taken')));
             exit;
         }
 
@@ -50,7 +70,7 @@ class UserController
         if (isset($_FILES['picture']) && $_FILES['picture']['error'] === UPLOAD_ERR_OK) {
             $uploaded = $this->user->uploadPicture($_FILES['picture']);
             if ($uploaded === false) {
-                header('Location: index.php?module=user&action=create&toast=error&message=' . urlencode(Locale::get('invalid_file')));
+                header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('invalid_file')));
                 exit;
             }
             $this->user->picture = $uploaded;
@@ -58,18 +78,26 @@ class UserController
 
         if ($this->user->create()) {
             ActivityLog::log('user_created', $this->user->id, $this->user->firstname . ' ' . $this->user->lastname, 
-                ['username' => $this->user->username, 'role' => $this->user->role]);
+                ['username' => $this->user->username, 'role' => $this->user->role, 'bag_id' => $this->user->bag_id]);
+            
+            // Get bag name for credentials modal
+            $bagModel = new Bag();
+            $bag = $bagModel->getById($this->user->bag_id);
+            
+            $_SESSION['new_user_credentials'] = [
+                'username' => $this->user->username,
+                'password' => User::getDefaultPassword(),
+                'name' => $this->user->firstname . ' ' . $this->user->lastname,
+                'group' => $bag ? ($bag['long_name'] ?? $bag['name']) : null
+            ];
             header('Location: ' . $returnUrl . '&toast=success&message=' . urlencode(Locale::get('created_successfully')));
             exit;
         }
-        header('Location: index.php?module=user&action=create&toast=error&message=' . urlencode(Locale::get('error_creating')));
+        
+        ActivityLog::log('user_creation_failed', null, $this->user->firstname . ' ' . $this->user->lastname,
+            ['username' => $this->user->username, 'bag_id' => $this->user->bag_id, 'reason' => 'duplicate_or_error']);
+        header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('username_taken')));
         exit;
-    }
-
-    public function edit($id)
-    {
-        $user = $this->user->getById($id);
-        require __DIR__ . '/../views/users/edit.php';
     }
 
     public function update($id)
@@ -77,30 +105,66 @@ class UserController
         $returnUrl = $this->getReturnUrl();
         
         $this->user->id = $id;
-        $this->user->firstname = $_POST['firstname'];
-        $this->user->lastname = $_POST['lastname'];
-        $this->user->username = $_POST['username'] ?? null;
-        $this->user->telephone = $_POST['telephone'] ?? null;
-        $this->user->comments = $_POST['comments'] ?? null;
+        $this->user->firstname = trim($_POST['firstname'] ?? '');
+        $this->user->lastname = trim($_POST['lastname'] ?? '');
+        $this->user->username = !empty($_POST['username']) ? trim($_POST['username']) : null;
+        $this->user->telephone = !empty($_POST['telephone']) ? trim($_POST['telephone']) : null;
+        $this->user->comments = !empty($_POST['comments']) ? trim($_POST['comments']) : null;
         $this->user->multiplier = !empty($_POST['multiplier']) ? (int)$_POST['multiplier'] : 1;
         $this->user->role = !empty($_POST['role']) ? (int)$_POST['role'] : 1;
+        $this->user->bag_id = !empty($_POST['bag_id']) ? (int)$_POST['bag_id'] : null;
 
-        if (!empty($this->user->username) && $this->user->isUsernameTaken($this->user->username, $id)) {
-            header('Location: index.php?module=user&action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('username_taken')));
+        $existingUser = $this->user->getById($id);
+
+        // If bag_id not in form (non-superadmin), keep existing bag
+        if ($this->user->bag_id === null) {
+            $this->user->bag_id = $existingUser['bag_id'] ?? null;
+        }
+
+        // Admin cannot promote to superadmin
+        if ($this->user->role == 3 && !Auth::isSuperAdmin()) {
+            header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('admin_required')));
             exit;
         }
 
-        $existingUser = $this->user->getById($id);
+        // Admin cannot change superadmin role
+        if (($existingUser['role'] ?? 0) == 3 && !Auth::isSuperAdmin()) {
+            header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('admin_required')));
+            exit;
+        }
+
+        // Check if bag is changing
+        $oldBagId = $existingUser['bag_id'] ?? null;
+        $newBagId = $this->user->bag_id;
+        $bagChanged = ($oldBagId != $newBagId);
+
+        // Only superadmin can change bag
+        if ($bagChanged && !Auth::isSuperAdmin()) {
+            header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('admin_required')));
+            exit;
+        }
+
+        // If bag is changing, check for verified payments
+        if ($bagChanged && $this->hasVerifiedPayments($id)) {
+            header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('cannot_move_user_verified_payments')));
+            exit;
+        }
+
+        // Check username uniqueness in destination bag
+        if (!empty($this->user->username) && $this->user->isUsernameTaken($this->user->username, $id, $newBagId)) {
+            header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('username_taken')));
+            exit;
+        }
+
         $this->user->picture = $existingUser['picture'] ?? null;
 
         if (isset($_FILES['picture']) && $_FILES['picture']['error'] === UPLOAD_ERR_OK) {
             if ($this->user->picture) {
                 $this->user->deletePicture($this->user->picture);
             }
-
             $uploaded = $this->user->uploadPicture($_FILES['picture']);
             if ($uploaded === false) {
-                header('Location: index.php?module=user&action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('invalid_file')));
+                header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('invalid_file')));
                 exit;
             }
             $this->user->picture = $uploaded;
@@ -114,35 +178,223 @@ class UserController
         }
 
         if ($this->user->update()) {
+            // If bag changed, update related records and log the movement
+            if ($bagChanged) {
+                $this->moveUserToBag($id, $oldBagId, $newBagId);
+            }
+
             ActivityLog::log('user_updated', $id, $this->user->firstname . ' ' . $this->user->lastname, 
-                ['username' => $this->user->username, 'role' => $this->user->role]);
+                ['username' => $this->user->username, 'role' => $this->user->role, 'bag_id' => $this->user->bag_id]);
             header('Location: ' . $returnUrl . '&toast=success&message=' . urlencode(Locale::get('updated_successfully')));
             exit;
         }
-        header('Location: index.php?module=user&action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('error_updating')));
+        header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('error_updating')));
         exit;
+    }
+
+    private function moveUserToBag($userId, $oldBagId, $newBagId)
+    {
+        // Update savings bag_id
+        $query = "UPDATE savings SET bag_id = :new_bag_id WHERE user_id = :user_id AND bag_id = :old_bag_id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':new_bag_id', $newBagId);
+        $stmt->bindParam(':user_id', $userId);
+        $stmt->bindParam(':old_bag_id', $oldBagId);
+        $stmt->execute();
+
+        // Update activity_logs bag_id
+        $query = "UPDATE activity_logs SET bag_id = :new_bag_id WHERE user_id = :user_id AND bag_id = :old_bag_id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':new_bag_id', $newBagId);
+        $stmt->bindParam(':user_id', $userId);
+        $stmt->bindParam(':old_bag_id', $oldBagId);
+        $stmt->execute();
+
+        // Get bag names for logging
+        $bagModel = new Bag();
+        $oldBag = $bagModel->getById($oldBagId);
+        $newBag = $bagModel->getById($newBagId);
+
+        // Log the movement
+        ActivityLog::log('user_moved_to_bag', $userId, $this->user->firstname . ' ' . $this->user->lastname, [
+            'old_bag_id' => $oldBagId,
+            'old_bag_name' => $oldBag['name'] ?? 'Unknown',
+            'new_bag_id' => $newBagId,
+            'new_bag_name' => $newBag['name'] ?? 'Unknown',
+            'moved_by' => Auth::getUserId()
+        ]);
     }
 
     public function resetPassword($id)
     {
+        $userData = $this->user->getById($id);
         if ($this->user->resetPassword($id)) {
-            ActivityLog::log('password_reset', $id, null, ['reset_by' => Auth::getUserId()]);
-            header('Location: index.php?module=user&action=edit&id=' . $id . '&toast=success&message=' . urlencode(Locale::get('password_reset_successfully')));
+            ActivityLog::log('password_reset', $id, $userData['firstname'] . ' ' . $userData['lastname'], ['reset_by' => Auth::getUserId()]);
+            
+            // Get bag name for credentials modal
+            $bagModel = new Bag();
+            $bag = $bagModel->getById($userData['bag_id'] ?? null);
+            
+            $_SESSION['new_user_credentials'] = [
+                'username' => $userData['username'],
+                'password' => User::getDefaultPassword(),
+                'name' => $userData['firstname'] . ' ' . $userData['lastname'],
+                'group' => $bag ? ($bag['long_name'] ?? $bag['name']) : null,
+                'reset' => true
+            ];
+            header('Location: index.php?module=user&toast=success&message=' . urlencode(Locale::get('password_reset_successfully')));
             exit;
         }
-        header('Location: index.php?module=user&action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('error_resetting_password')));
+        header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('error_resetting_password')));
         exit;
     }
 
     public function delete($id)
     {
         $userData = $this->user->getById($id);
+        if (!$userData) {
+            header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('user_not_found')));
+            exit;
+        }
+        
+        // Check if this is the last superadmin
+        if (($userData['role'] ?? 0) == 3) {
+            $query = "SELECT COUNT(*) as count FROM users WHERE role = 3 AND status = 1 AND deleted_at IS NULL";
+            $stmt = $this->conn->prepare($query);
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($result['count'] <= 1) {
+                header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('cannot_delete_last_superadmin')));
+                exit;
+            }
+        }
+        
+        if ($this->hasVerifiedPayments($id)) {
+            header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('cannot_delete_user_verified_payments')));
+            exit;
+        }
+        
         if ($this->user->delete($id)) {
             ActivityLog::log('user_deleted', $id, $userData['firstname'] . ' ' . $userData['lastname'] ?? null);
             header('Location: index.php?module=user&toast=success&message=' . urlencode(Locale::get('deleted_successfully')));
             exit;
         }
         header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('error_deleting')));
+        exit;
+    }
+
+    private function hasVerifiedPayments($userId)
+    {
+        $query = "SELECT COUNT(*) as count FROM savings WHERE user_id = :user_id AND status = 'verified' AND is_active = 1 AND deleted_at IS NULL";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':user_id', $userId);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result['count'] > 0;
+    }
+
+    public function getJson($id)
+    {
+        if (!Auth::isLoggedIn() || !Auth::isAdmin()) {
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'unauthorized']);
+            exit;
+        }
+
+        header('Content-Type: application/json');
+
+        $user = $this->user->getById($id);
+        if (!$user) {
+            echo json_encode(['error' => 'not_found']);
+            exit;
+        }
+
+        echo json_encode($user);
+        exit;
+    }
+
+    public function updateProfile()
+    {
+        $userId = Auth::getUserId();
+        $user = $this->user->getById($userId);
+
+        $firstname = trim($_POST['firstname'] ?? '');
+        $lastname = trim($_POST['lastname'] ?? '');
+        $telephone = trim($_POST['telephone'] ?? '');
+
+        $changes = [];
+        if ($firstname !== $user['firstname']) {
+            $changes['Firstname'] = ['old' => $user['firstname'], 'new' => $firstname];
+        }
+        if ($lastname !== $user['lastname']) {
+            $changes['Lastname'] = ['old' => $user['lastname'], 'new' => $lastname];
+        }
+        if ($telephone !== ($user['telephone'] ?? '')) {
+            $changes['Telephone'] = ['old' => $user['telephone'] ?? '', 'new' => $telephone];
+        }
+
+        $this->user->id = $userId;
+        $this->user->firstname = $firstname;
+        $this->user->lastname = $lastname;
+        $this->user->username = $user['username'];
+        $this->user->telephone = $telephone;
+        $this->user->comments = $user['comments'];
+        $this->user->multiplier = $user['multiplier'];
+        $this->user->role = $user['role'];
+        $this->user->bag_id = $user['bag_id'];
+        $this->user->picture = $user['picture'];
+
+        // Handle picture upload
+        $pictureResult = null;
+        $pictureError = null;
+        
+        if (!isset($_FILES['picture'])) {
+            $pictureError = 'no_file_input';
+        } elseif ($_FILES['picture']['error'] === UPLOAD_ERR_NO_FILE) {
+            $pictureError = 'no_file_selected';
+        } elseif ($_FILES['picture']['error'] !== UPLOAD_ERR_OK) {
+            $pictureError = 'upload_error_' . $_FILES['picture']['error'];
+        } else {
+            $file = $_FILES['picture'];
+            
+            if ($this->user->picture) {
+                $this->user->deletePicture($this->user->picture);
+            }
+            
+            $uploaded = $this->user->uploadPicture($file);
+            if ($uploaded === false) {
+                $pictureError = 'validation_failed';
+            } else {
+                $this->user->picture = $uploaded;
+                $pictureResult = $uploaded;
+            }
+        }
+
+        if ($this->user->update()) {
+            $_SESSION['user_name'] = $firstname . ' ' . $lastname;
+            
+            $logPayload = [
+                'picture_status' => $pictureResult ? 'uploaded' : ($pictureError ?: 'none'),
+            ];
+            if ($pictureResult) {
+                $logPayload['picture'] = $pictureResult;
+                $logPayload['thumbnail'] = preg_replace('/\.[^.]+$/', '_thumb.jpg', $pictureResult);
+            }
+            
+            if ($pictureResult) {
+                $changes['Picture'] = ['old' => $user['picture'] ?? 'none', 'new' => $pictureResult];
+            } elseif ($pictureError && $pictureError !== 'no_file_selected' && $pictureError !== 'no_file_input') {
+                $changes['Picture'] = ['old' => $user['picture'] ?? 'none', 'new' => 'FAILED: ' . $pictureError];
+            }
+            
+            ActivityLog::log('profile_updated', $userId, $firstname . ' ' . $lastname, $logPayload, !empty($changes) ? $changes : null);
+            header('Location: index.php?toast=success&message=' . urlencode(Locale::get('profile_updated_successfully')));
+            exit;
+        }
+        
+        ActivityLog::log('profile_update_failed', $userId, $firstname . ' ' . $lastname, 
+            ['reason' => 'database_error', 'picture_status' => $pictureResult ? 'uploaded' : $pictureError]);
+        header('Location: index.php?toast=error&message=' . urlencode(Locale::get('error_updating')));
         exit;
     }
 }
