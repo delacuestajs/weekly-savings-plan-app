@@ -33,7 +33,7 @@ DB_USERNAME=root
 DB_PASSWORD=your_secure_password
 DB_ROOT_PASSWORD=your_root_password
 DEFAULT_PASSWORD=abcd1234
-APP_VERSION=1.0.1
+APP_VERSION=1.1.1
 APP_BUILD_DATE=2026-07-01 00:00:00
 ```
 
@@ -49,7 +49,7 @@ APP_BUILD_DATE=2026-07-01 00:00:00
 | `DB_PASSWORD` | MySQL password | (required) |
 | `DB_ROOT_PASSWORD` | MySQL root password | (required) |
 | `DEFAULT_PASSWORD` | Default password for new users | `abcd1234` |
-| `APP_VERSION` | Application version | `1.0.1` |
+| `APP_VERSION` | Application version | `1.1.1` |
 | `APP_BUILD_DATE` | Build timestamp | (auto-generated) |
 
 ### 3. Timezone Configuration

@@ -173,8 +173,15 @@ function translatedDate($dateStr) {
                 </div>
                 <?php if ($data['total_activities'] > 0): ?>
                 <div class="bg-orange-50 rounded-lg p-2 text-center">
+                    <?php if ($data['total_confirmed_expenses'] > 0): ?>
+                    <p class="text-xs text-orange-400 line-through">$<?= number_format($data['total_activities'], 0) ?></p>
                     <p class="text-xs text-orange-600"><?= Locale::get('activities') ?> (<?= Locale::get('net') ?>)</p>
                     <p class="text-sm font-bold text-orange-800">$<?= number_format($data['total_activities_net'], 0) ?></p>
+                    <p class="text-[10px] text-red-500 mt-0.5">-<?= Locale::get('expenses') ?> $<?= number_format($data['total_confirmed_expenses'], 0) ?></p>
+                    <?php else: ?>
+                    <p class="text-xs text-orange-600"><?= Locale::get('activities') ?></p>
+                    <p class="text-sm font-bold text-orange-800">$<?= number_format($data['total_activities'], 0) ?></p>
+                    <?php endif; ?>
                 </div>
                 <?php endif; ?>
                 <div class="bg-green-50 rounded-lg p-2 text-center">
@@ -186,14 +193,6 @@ function translatedDate($dateStr) {
                     <p class="text-sm font-bold text-red-800">$<?= number_format($data['total_pending'], 0) ?></p>
                 </div>
             </div>
-            <?php if (empty($data['user_id']) && $data['total_activities'] > 0 && $data['total_confirmed_expenses'] > 0): ?>
-            <div class="mt-2 px-1">
-                <div class="flex items-center justify-between text-xs">
-                    <span class="text-gray-400"><?= Locale::get('expenses') ?></span>
-                    <span class="font-medium text-red-500">-$<?= number_format($data['total_confirmed_expenses'], 0) ?></span>
-                </div>
-            </div>
-            <?php endif; ?>
             <div class="mt-2">
                 <div class="w-full bg-gray-200 rounded-full h-1.5">
                     <div class="bg-gradient-to-r from-green-400 to-green-600 h-1.5 rounded-full" style="width: <?= $data['progress_percent'] ?>%"></div>
