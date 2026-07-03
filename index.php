@@ -1,5 +1,6 @@
 <?php
 
+require_once __DIR__ . '/handlers/error_handler.php';
 require_once __DIR__ . '/locale.php';
 require_once __DIR__ . '/controllers/Auth.php';
 require_once __DIR__ . '/controllers/SavingController.php';

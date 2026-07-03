@@ -337,4 +337,9 @@ return [
     'log_bag_disabled' => 'Grupo Deshabilitado',
     'log_bag_truncated' => 'Grupo Truncado',
     'log_user_moved_to_bag' => 'Usuario Movido a Grupo',
+    'log_system_error' => 'Error del Sistema',
+    'error_heading' => 'Ups, algo salió mal',
+    'error_message' => 'Ocurrió un error inesperado. Nuestro equipo ha sido notificado. Por favor, inténtelo de nuevo más tarde.',
+    'error_show_details' => 'Ver Detalles',
+    'error_accept' => 'Aceptar',
 ];

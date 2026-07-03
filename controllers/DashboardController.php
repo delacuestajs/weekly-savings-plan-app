@@ -98,7 +98,7 @@ class DashboardController
         $params = [];
         
         if ($bagId !== null) {
-            $query .= " AND bag_id = :bag_id";
+            $query .= " AND s.bag_id = :bag_id";
             $params[':bag_id'] = $bagId;
         }
         

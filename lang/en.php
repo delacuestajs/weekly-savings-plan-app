@@ -337,4 +337,9 @@ return [
     'log_bag_disabled' => 'Group Disabled',
     'log_bag_truncated' => 'Group Truncated',
     'log_user_moved_to_bag' => 'User Moved to Group',
+    'log_system_error' => 'System Error',
+    'error_heading' => 'Oops, something went wrong',
+    'error_message' => 'An unexpected error occurred. Our team has been notified. Please try again later.',
+    'error_show_details' => 'Show Details',
+    'error_accept' => 'Accept',
 ];
