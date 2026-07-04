@@ -62,6 +62,19 @@ if ($action === 'logout') {
     exit;
 }
 
+// PWA auto-logout (AJAX) — called when app is closed on mobile
+if ($action === 'session_pwa_logout') {
+    if (Auth::isLoggedIn()) {
+        $userId = Auth::getUserId();
+        $userName = Auth::getUserName();
+        Auth::logout();
+        ActivityLog::log('user_logout', null, null, null, null, $userId, $userName);
+    }
+    header('Content-Type: application/json');
+    echo json_encode(['ok' => true]);
+    exit;
+}
+
 // Password change with CSRF validation
 if ($action === 'change_password') {
     if (!Auth::validateCsrf()) {

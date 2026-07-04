@@ -342,4 +342,8 @@ return [
     'error_message' => 'Ocurrió un error inesperado. Nuestro equipo ha sido notificado. Por favor, inténtelo de nuevo más tarde.',
     'error_show_details' => 'Ver Detalles',
     'error_accept' => 'Aceptar',
+    'pwa_logout_title' => 'Cerrar Sesión',
+    'pwa_logout_confirm' => '¿Estás seguro de que quieres cerrar sesión?',
+    'pwa_logout_yes' => 'Sí, Cerrar Sesión',
+    'pwa_logout_cancel' => 'Cancelar',
 ];

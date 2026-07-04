@@ -25,10 +25,11 @@ if (Auth::isLoggedIn() && Auth::getBagId()) {
     <meta name="theme-color" content="#3b82f6">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="Savings">
     <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <link rel="apple-touch-icon" href="/favicon.svg">
+    <link rel="icon" type="image/svg+xml" href="/uploads/icon.svg">
+    <link rel="apple-touch-icon" href="/uploads/icon.svg">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100">
@@ -328,9 +329,6 @@ if (Auth::isLoggedIn() && Auth::getBagId()) {
                 <div class="text-sm text-gray-600">
                     <span class="font-medium"><?= Locale::get('build') ?>:</span> 
                     <span class="font-mono bg-gray-100 px-2 py-0.5 rounded"><?= htmlspecialchars($appConfig['app_build_date']) ?></span>
-                </div>
-                <div class="text-xs text-gray-400 mt-2">
-                    <span class="font-mono"><?= htmlspecialchars($appConfig['app_commit_hash']) ?></span>
                 </div>
             </div>
             
@@ -1118,4 +1116,67 @@ document.addEventListener('DOMContentLoaded', function() {
     openPasswordModal(true);
 });
 <?php endif; ?>
+</script>
+<script>
+// --- PWA: Service Worker ---
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(function() {});
+}
+
+// --- PWA: Back button logout confirmation ---
+(function() {
+    var isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    if (!isPWA) return;
+
+    var isLoggedIn = <?= Auth::isLoggedIn() ? 'true' : 'false' ?>;
+    if (!isLoggedIn) return;
+
+    var pwaStrings = {
+        title: <?= json_encode(Locale::get('pwa_logout_title')) ?>,
+        confirm: <?= json_encode(Locale::get('pwa_logout_confirm')) ?>,
+        yes: <?= json_encode(Locale::get('pwa_logout_yes')) ?>,
+        cancel: <?= json_encode(Locale::get('pwa_logout_cancel')) ?>
+    };
+
+    history.pushState(null, '', location.href);
+
+    var showingModal = false;
+
+    window.addEventListener('popstate', function() {
+        if (showingModal) return;
+        if (!isLoggedIn) return;
+        showingModal = true;
+
+        var overlay = document.createElement('div');
+        overlay.id = 'pwaLogoutModal';
+        overlay.className = 'fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center';
+        overlay.innerHTML =
+            '<div class="bg-white rounded-xl shadow-xl p-6 mx-4 max-w-sm w-full text-center">' +
+            '<h3 class="text-lg font-semibold text-gray-800 mb-2">' + pwaStrings.title + '</h3>' +
+            '<p class="text-gray-600 mb-6">' + pwaStrings.confirm + '</p>' +
+            '<div class="flex gap-3">' +
+            '<button id="pwaLogoutCancel" ' +
+            'class="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium">' +
+            pwaStrings.cancel + '</button>' +
+            '<button id="pwaLogoutConfirm" ' +
+            'class="flex-1 px-4 py-2.5 rounded-lg bg-red-600 text-white hover:bg-red-700 font-medium">' +
+            pwaStrings.yes + '</button>' +
+            '</div></div>';
+        document.body.appendChild(overlay);
+
+        document.getElementById('pwaLogoutCancel').addEventListener('click', function() {
+            overlay.remove();
+            showingModal = false;
+            history.pushState(null, '', location.href);
+        });
+
+        document.getElementById('pwaLogoutConfirm').addEventListener('click', function() {
+            overlay.innerHTML = '<div class="bg-white rounded-xl shadow-xl p-8 mx-4 max-w-sm w-full text-center">' +
+                '<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div></div>';
+            fetch('index.php?action=session_pwa_logout', { method: 'GET', keepalive: true })
+                .then(function() { window.location.replace('index.php'); })
+                .catch(function() { window.location.replace('index.php'); });
+        });
+    });
+})();
 </script>

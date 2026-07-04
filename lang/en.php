@@ -342,4 +342,8 @@ return [
     'error_message' => 'An unexpected error occurred. Our team has been notified. Please try again later.',
     'error_show_details' => 'Show Details',
     'error_accept' => 'Accept',
+    'pwa_logout_title' => 'Logout',
+    'pwa_logout_confirm' => 'Are you sure you want to log out?',
+    'pwa_logout_yes' => 'Yes, Logout',
+    'pwa_logout_cancel' => 'Cancel',
 ];
