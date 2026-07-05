@@ -4,7 +4,55 @@ A web application to track weekly savings payments for groups of users with mult
 
 ## Description
 
-The Weekly Savings Plan App helps groups of users track their savings goals on a weekly basis. Each week has a savings goal that increases gradually (Week 1 = $1,000, Week 2 = $2,000, etc.). The app supports multiple independent groups (bags), each with their own users, payments, activities, and expenses.
+The Weekly Savings Plan App helps groups of users track their savings goals on a weekly basis. The app supports multiple independent groups (bags), each with their own users, payments, activities, and expenses.
+
+## How It Works
+
+### Payment Systems
+
+Each user is assigned one of two payment systems:
+
+| System | Description |
+|--------|-------------|
+| **Week Number** | Each week has a progressive value: Week 1 = $1,000, Week 2 = $2,000, ..., Week 52 = $52,000. The weekly value is calculated as `week × $1,000 × multiplier`. |
+| **Fixed Payment** | The group sets a fixed monthly amount (default: $50,000). Each week's value is `monthly_amount ÷ weeks_in_that_month × multiplier`. |
+
+**Example (Fixed Payment):**
+- Group fixed amount: $50,000/month
+- January has 5 weeks → each week = $10,000
+- February has 4 weeks → each week = $12,500
+
+### Savings Multiplier
+
+Each user has a multiplier (default: 1) that scales their weekly goal. A user with multiplier 2 pays double the base amount each week.
+
+### Year Goal Calculation
+
+- **Week Number**: `sum(1..52) × $1,000 × multiplier` = $1,378,000 × multiplier
+- **Fixed Payment**: `$50,000 × 12 months × multiplier` = $600,000 × multiplier
+
+### Combined View (All Users)
+
+When viewing "All Users (Combined)", each user's weekly contribution is calculated individually based on their own payment system, then summed together. This allows mixed payment systems within the same group.
+
+### Activities & Expenses
+
+Activities are extra charges or income events tracked separately from weekly savings:
+
+- **Activities** represent extra charges (e.g., fines, bonuses, special contributions)
+- **Expenses** are costs associated with an activity
+- Activity value is multiplied by the user's multiplier
+- Confirmed expenses are subtracted from the activity value to get the net amount
+- Activities are added to (or subtracted from) the monthly subtotal in the weekly plan
+
+### Weekly Plan View
+
+The weekly plan shows a calendar view of all 52 weeks grouped by month:
+- **Paid weeks** (green): Fully paid
+- **Partial weeks** (yellow): Partially paid
+- **Unpaid weeks** (gray): Not yet paid
+- **Activities**: Listed separately with their net value
+- **Monthly subtotals**: Sum of weeks + activities for each month
 
 ## Default Login
 
@@ -17,8 +65,9 @@ You will be prompted to change your password on first login.
 
 - **Multi-Group Support**: Independent groups (bags) with isolated data per group
 - **Weekly Savings Plan**: Visual calendar view showing savings progress for each week
+- **Two Payment Systems**: Week Number (progressive) or Fixed Payment (monthly)
 - **Payment Tracking**: Record payments and track which weeks are paid, partially paid, or unpaid
-- **Multi-User Support**: Multiple users per group, each with their own savings multiplier
+- **Multi-User Support**: Multiple users per group, each with their own savings multiplier and payment system
 - **Activities & Expenses**: Extra charges or expenses tracked per activity
 - **Role-Based Access**: Superadmin, Admin, Normal, and Disabled roles
 - **User Management**: Create, edit, and manage users with unique usernames per group
@@ -28,6 +77,7 @@ You will be prompted to change your password on first login.
 - **Bilingual**: English and Spanish
 - **Responsive Design**: Works on desktop and mobile devices
 - **Profile Pictures**: Users and groups can have profile pictures with thumbnails
+- **PWA Support**: Installable as a Progressive Web App on mobile devices
 
 ## Roles
 
@@ -43,6 +93,7 @@ You will be prompted to change your password on first login.
 ### Groups (Bags)
 - Each group is an independent savings community
 - Users belong to one group (except superadmins who can access multiple)
+- Groups have a fixed monthly amount setting for Fixed Payment users
 - Superadmins can create, edit, disable, and truncate groups
 - Truncating creates a SQL backup before deleting all data
 
@@ -60,6 +111,7 @@ You will be prompted to change your password on first login.
 ### User Management (Admin Only)
 - Create new users with unique usernames (per group)
 - Set savings multipliers for each user
+- Assign payment system (Week Number or Fixed) per user
 - Reset user passwords
 - Enable/disable user accounts
 
