@@ -51,6 +51,7 @@ class UserController
         $this->user->telephone = !empty($_POST['telephone']) ? trim($_POST['telephone']) : null;
         $this->user->comments = !empty($_POST['comments']) ? trim($_POST['comments']) : null;
         $this->user->multiplier = !empty($_POST['multiplier']) ? (int)$_POST['multiplier'] : 1;
+        $this->user->payment_system = !empty($_POST['payment_system']) ? (int)$_POST['payment_system'] : 1;
         $this->user->role = !empty($_POST['role']) ? (int)$_POST['role'] : 1;
         $this->user->bag_id = !empty($_POST['bag_id']) ? (int)$_POST['bag_id'] : Auth::getBagId();
         $this->user->password = User::getDefaultPassword();
@@ -111,6 +112,7 @@ class UserController
         $this->user->telephone = !empty($_POST['telephone']) ? trim($_POST['telephone']) : null;
         $this->user->comments = !empty($_POST['comments']) ? trim($_POST['comments']) : null;
         $this->user->multiplier = !empty($_POST['multiplier']) ? (int)$_POST['multiplier'] : 1;
+        $this->user->payment_system = !empty($_POST['payment_system']) ? (int)$_POST['payment_system'] : 1;
         $this->user->role = !empty($_POST['role']) ? (int)$_POST['role'] : 1;
         $this->user->bag_id = !empty($_POST['bag_id']) ? (int)$_POST['bag_id'] : null;
 
@@ -340,6 +342,7 @@ class UserController
         $this->user->telephone = $telephone;
         $this->user->comments = $user['comments'];
         $this->user->multiplier = $user['multiplier'];
+        $this->user->payment_system = $user['payment_system'] ?? 1;
         $this->user->role = $user['role'];
         $this->user->bag_id = $user['bag_id'];
         $this->user->picture = $user['picture'];

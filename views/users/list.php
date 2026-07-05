@@ -69,6 +69,19 @@ $allBags = $bagModel->getAll()->fetchAll(PDO::FETCH_ASSOC);
                     <span class="inline-block px-2 py-0.5 text-[10px] rounded-full <?= $roleClass ?>">
                         <?= $roleLabel ?>
                     </span>
+                    <?php if (($row['multiplier'] ?? 1) > 1): ?>
+                    <span class="inline-block px-2 py-0.5 text-[10px] rounded-full bg-blue-100 text-blue-700">
+                        x<?= htmlspecialchars($row['multiplier']) ?>
+                    </span>
+                    <?php endif; ?>
+                    <?php
+                    $ps = $row['payment_system'] ?? 1;
+                    $psClass = $ps == 2 ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600';
+                    $psLabel = $ps == 2 ? Locale::get('payment_system_fixed') : Locale::get('payment_system_week_number');
+                    ?>
+                    <span class="inline-block px-2 py-0.5 text-[10px] rounded-full <?= $psClass ?>">
+                        <?= $psLabel ?>
+                    </span>
                 </div>
             </div>
             <?php if (!empty($row['comments'])): ?>
@@ -165,6 +178,16 @@ $allBags = $bagModel->getAll()->fetchAll(PDO::FETCH_ASSOC);
                     <input type="number" id="user_create_multiplier" name="multiplier" value="1" min="1" max="100" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
 
+                <div class="mb-4">
+                    <label for="user_create_payment_system" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('payment_system') ?></label>
+                    <select id="user_create_payment_system" name="payment_system" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="1"><?= Locale::get('payment_system_week_number') ?></option>
+                        <option value="2"><?= Locale::get('payment_system_fixed') ?></option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="mb-4">
                     <label for="user_create_role" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('role') ?></label>
                     <select id="user_create_role" name="role" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
@@ -269,6 +292,16 @@ $allBags = $bagModel->getAll()->fetchAll(PDO::FETCH_ASSOC);
                 </div>
 
                 <div class="mb-4">
+                    <label for="user_edit_payment_system" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('payment_system') ?></label>
+                    <select id="user_edit_payment_system" name="payment_system" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="1"><?= Locale::get('payment_system_week_number') ?></option>
+                        <option value="2"><?= Locale::get('payment_system_fixed') ?></option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="mb-4">
                     <label for="user_edit_role" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('role') ?></label>
                     <select id="user_edit_role" name="role" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         <option value="1"><?= Locale::get('role_normal') ?></option>
@@ -348,6 +381,7 @@ function openUserEditModal(userId) {
             document.getElementById('user_edit_telephone').value = data.telephone || '';
             document.getElementById('user_edit_comments').value = data.comments || '';
             document.getElementById('user_edit_multiplier').value = data.multiplier || '1';
+            document.getElementById('user_edit_payment_system').value = data.payment_system || '1';
             document.getElementById('user_edit_role').value = data.role || '1';
             
             var bagSelect = document.getElementById('user_edit_bag_id');

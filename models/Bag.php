@@ -13,6 +13,7 @@ class Bag
     public $description;
     public $picture;
     public $status;
+    public $fixed_amount;
 
     private $uploadDir = __DIR__ . '/../uploads/bags/';
 
@@ -97,8 +98,8 @@ class Bag
 
     public function create()
     {
-        $query = "INSERT INTO {$this->table} (name, long_name, description, picture, status) 
-                  VALUES (:name, :long_name, :description, :picture, :status)";
+        $query = "INSERT INTO {$this->table} (name, long_name, description, picture, status, fixed_amount) 
+                  VALUES (:name, :long_name, :description, :picture, :status, :fixed_amount)";
 
         $stmt = $this->conn->prepare($query);
 
@@ -111,6 +112,7 @@ class Bag
         $stmt->bindParam(':description', $this->description);
         $stmt->bindParam(':picture', $this->picture);
         $stmt->bindParam(':status', $this->status);
+        $stmt->bindParam(':fixed_amount', $this->fixed_amount);
 
         if ($stmt->execute()) {
             return $this->conn->lastInsertId();
@@ -122,7 +124,7 @@ class Bag
     {
         $query = "UPDATE {$this->table} 
                   SET name = :name, long_name = :long_name, description = :description, 
-                      picture = :picture, status = :status, 
+                      picture = :picture, status = :status, fixed_amount = :fixed_amount,
                       deleted_at = :deleted_at, updated_at = NOW()
                   WHERE id = :id";
 
@@ -140,6 +142,7 @@ class Bag
         $stmt->bindParam(':description', $this->description);
         $stmt->bindParam(':picture', $this->picture);
         $stmt->bindParam(':status', $this->status);
+        $stmt->bindParam(':fixed_amount', $this->fixed_amount);
         $stmt->bindParam(':deleted_at', $deletedAt);
         $stmt->bindParam(':id', $this->id);
 

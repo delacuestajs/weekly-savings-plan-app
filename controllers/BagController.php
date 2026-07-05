@@ -46,6 +46,7 @@ class BagController
         $this->bag->long_name = !empty($_POST['long_name']) ? trim($_POST['long_name']) : null;
         $this->bag->description = !empty($_POST['description']) ? trim($_POST['description']) : null;
         $this->bag->status = !empty($_POST['status']) ? (int)$_POST['status'] : 1;
+        $this->bag->fixed_amount = !empty($_POST['fixed_amount']) ? (float)$_POST['fixed_amount'] : (getenv('DEFAULT_FIXED_AMOUNT') ?: 50000);
 
         if (!Bag::isValidName($this->bag->name)) {
             header('Location: index.php?module=bag&action=create&toast=error&message=' . urlencode(Locale::get('group_name_invalid')));
@@ -99,6 +100,7 @@ class BagController
         $this->bag->long_name = !empty($_POST['long_name']) ? trim($_POST['long_name']) : null;
         $this->bag->description = !empty($_POST['description']) ? trim($_POST['description']) : null;
         $this->bag->picture = $existingBag['picture'] ?? null;
+        $this->bag->fixed_amount = !empty($_POST['fixed_amount']) ? (float)$_POST['fixed_amount'] : (float)($existingBag['fixed_amount'] ?? 50000);
 
         if (!Bag::isValidName($this->bag->name)) {
             header('Location: index.php?module=bag&action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('group_name_invalid')));
@@ -172,6 +174,9 @@ class BagController
         }
         if ((int)$existingBag['status'] !== $this->bag->status) {
             $changes['Status'] = ['old' => $existingBag['status'], 'new' => $this->bag->status];
+        }
+        if ((float)($existingBag['fixed_amount'] ?? 50000) !== $this->bag->fixed_amount) {
+            $changes['Fixed Amount'] = ['old' => $existingBag['fixed_amount'] ?? 50000, 'new' => $this->bag->fixed_amount];
         }
         if ($pictureResult) {
             $changes['Picture'] = ['old' => $existingBag['picture'] ?? 'none', 'new' => $pictureResult];

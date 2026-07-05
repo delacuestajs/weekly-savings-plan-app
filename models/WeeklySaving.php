@@ -58,23 +58,35 @@ class WeeklySaving
 
         $multiplier = 0;
         $usersMultipliers = [];
+        $paymentSystem = 1;
+        $fixedAmount = 0;
+        $weekCountPerMonth = [];
+        $usersList = [];
         
         if ($userId !== null) {
-            $userQuery = "SELECT multiplier FROM users WHERE id = :id AND status = 1 AND deleted_at IS NULL";
+            $userQuery = "SELECT u.multiplier, u.payment_system, b.fixed_amount 
+                          FROM users u 
+                          JOIN bags b ON u.bag_id = b.id 
+                          WHERE u.id = :id AND u.status = 1 AND u.deleted_at IS NULL";
             $userStmt = $this->conn->prepare($userQuery);
             $userStmt->bindParam(':id', $userId);
             $userStmt->execute();
             $user = $userStmt->fetch(PDO::FETCH_ASSOC);
             if ($user) {
                 $multiplier = max(1, (int)$user['multiplier']);
+                $paymentSystem = (int)($user['payment_system'] ?? 1);
+                $fixedAmount = (float)($user['fixed_amount'] ?? 50000);
             }
         } else {
             // Exclude superadmin (role=3) from combined totals
-            $usersQuery = "SELECT id, firstname, lastname, multiplier FROM users WHERE status = 1 AND deleted_at IS NULL AND role != 3";
+            $usersQuery = "SELECT u.id, u.firstname, u.lastname, u.multiplier, u.payment_system, u.bag_id, b.fixed_amount 
+                          FROM users u 
+                          JOIN bags b ON u.bag_id = b.id 
+                          WHERE u.status = 1 AND u.deleted_at IS NULL AND u.role != 3";
             $usersParams = [];
             
             if ($bagId !== null) {
-                $usersQuery .= " AND bag_id = :bag_id";
+                $usersQuery .= " AND u.bag_id = :bag_id";
                 $usersParams[':bag_id'] = $bagId;
             }
             
@@ -85,6 +97,7 @@ class WeeklySaving
             $usersStmt->execute();
             while ($u = $usersStmt->fetch(PDO::FETCH_ASSOC)) {
                 $usersMultipliers[] = $u;
+                $usersList[] = $u;
             }
             if (!empty($usersMultipliers)) {
                 $totalMultiplier = 0;
@@ -108,27 +121,77 @@ class WeeklySaving
         $week1Start = clone $jan1;
         $week1Start->modify('-' . ($dayOfWeek - 1) . ' days');
 
+        // First pass: count weeks per month and assign months
+        $weekMonths = [];
+        $weeksPerMonth = array_fill(1, 12, 0);
         for ($week = 1; $week <= 52; $week++) {
-            $weekValue = $week * 1000 * $multiplier;
-            
             $weekStart = clone $week1Start;
             $weekStart->modify('+' . (($week - 1) * 7) . ' days');
-            
-            $weekEnd = clone $weekStart;
-            $weekEnd->modify('+6 days');
-
             $month = $this->getWeekMonth($weekStart, $year);
+            $weekMonths[$week] = $month;
+            $weeksPerMonth[$month]++;
+        }
 
-            $weeks[] = [
-                'week' => $week,
-                'value' => $weekValue,
-                'base_value' => $week * 1000,
-                'multiplier' => $multiplier,
-                'start_date' => $weekStart->format('Y-m-d'),
-                'end_date' => $weekEnd->format('Y-m-d'),
-                'month' => $month,
-                'month_name' => $this->getMonthName($month),
-            ];
+        // Second pass: generate weeks with correct values
+        if ($userId !== null) {
+            // Single user: simple calculation
+            for ($week = 1; $week <= 52; $week++) {
+                $weekStart = clone $week1Start;
+                $weekStart->modify('+' . (($week - 1) * 7) . ' days');
+                $weekEnd = clone $weekStart;
+                $weekEnd->modify('+6 days');
+                $month = $weekMonths[$week];
+
+                if ($paymentSystem == 2) {
+                    $weekValue = round($fixedAmount / $weeksPerMonth[$month]) * $multiplier;
+                } else {
+                    $weekValue = $week * 1000 * $multiplier;
+                }
+
+                $weeks[] = [
+                    'week' => $week,
+                    'value' => $weekValue,
+                    'base_value' => $week * 1000,
+                    'multiplier' => $multiplier,
+                    'start_date' => $weekStart->format('Y-m-d'),
+                    'end_date' => $weekEnd->format('Y-m-d'),
+                    'month' => $month,
+                    'month_name' => $this->getMonthName($month),
+                ];
+            }
+        } else {
+            // Combined view: calculate each user's contribution separately
+            for ($week = 1; $week <= 52; $week++) {
+                $weekStart = clone $week1Start;
+                $weekStart->modify('+' . (($week - 1) * 7) . ' days');
+                $weekEnd = clone $weekStart;
+                $weekEnd->modify('+6 days');
+                $month = $weekMonths[$week];
+
+                $totalWeekValue = 0;
+                foreach ($usersList as $u) {
+                    $uMult = max(1, (int)$u['multiplier']);
+                    $uSys = (int)($u['payment_system'] ?? 1);
+                    $uFixed = (float)($u['fixed_amount'] ?? 50000);
+
+                    if ($uSys == 2) {
+                        $totalWeekValue += round($uFixed / $weeksPerMonth[$month]) * $uMult;
+                    } else {
+                        $totalWeekValue += $week * 1000 * $uMult;
+                    }
+                }
+
+                $weeks[] = [
+                    'week' => $week,
+                    'value' => $totalWeekValue,
+                    'base_value' => $week * 1000,
+                    'multiplier' => $multiplier,
+                    'start_date' => $weekStart->format('Y-m-d'),
+                    'end_date' => $weekEnd->format('Y-m-d'),
+                    'month' => $month,
+                    'month_name' => $this->getMonthName($month),
+                ];
+            }
         }
 
         $activities = $this->getActivitiesByYear($year, $bagId);
@@ -228,7 +291,28 @@ class WeeklySaving
             }
         }
 
-        $totalYearGoal = 52 * 53 / 2 * 1000 * $multiplier;
+        if ($userId !== null) {
+            // Single user year goal
+            if ($paymentSystem == 2) {
+                $totalYearGoal = $fixedAmount * 12 * $multiplier;
+            } else {
+                $totalYearGoal = 52 * 53 / 2 * 1000 * $multiplier;
+            }
+        } else {
+            // Combined view: sum each user's individual year goal
+            $totalYearGoal = 0;
+            foreach ($usersList as $u) {
+                $uMult = max(1, (int)$u['multiplier']);
+                $uSys = (int)($u['payment_system'] ?? 1);
+                $uFixed = (float)($u['fixed_amount'] ?? 50000);
+
+                if ($uSys == 2) {
+                    $totalYearGoal += $uFixed * 12 * $uMult;
+                } else {
+                    $totalYearGoal += 52 * 53 / 2 * 1000 * $uMult;
+                }
+            }
+        }
         $totalActivities = 0;
         $totalConfirmedExpenses = 0;
         foreach ($activities as $activity) {
@@ -243,6 +327,8 @@ class WeeklySaving
             'year' => $year,
             'user_id' => $userId,
             'multiplier' => $multiplier,
+            'payment_system' => $paymentSystem,
+            'fixed_amount' => $fixedAmount,
             'users_multipliers' => $usersMultipliers,
             'grouped' => $grouped,
             'total_paid' => $totalPaid,
@@ -258,23 +344,20 @@ class WeeklySaving
 
     private function getWeekMonth($weekStart, $year)
     {
-        $weekEnd = clone $weekStart;
-        $weekEnd->modify('+6 days');
+        $daysPerMonth = [];
 
-        $startMonth = (int)$weekStart->format('n');
-        $startYear = (int)$weekStart->format('Y');
-        $endMonth = (int)$weekEnd->format('n');
-        $endYear = (int)$weekEnd->format('Y');
-
-        if ($startYear < $year && $endYear == $year) {
-            return $endMonth;
+        for ($i = 0; $i < 7; $i++) {
+            $day = clone $weekStart;
+            $day->modify("+$i days");
+            $month = (int)$day->format('n');
+            if (!isset($daysPerMonth[$month])) {
+                $daysPerMonth[$month] = 0;
+            }
+            $daysPerMonth[$month]++;
         }
 
-        if ($startYear == $year) {
-            return $startMonth;
-        }
-
-        return $startMonth;
+        arsort($daysPerMonth);
+        return (int)key($daysPerMonth);
     }
 
     public function getTotalPaid($userId = null, $bagId = null)

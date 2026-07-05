@@ -55,6 +55,18 @@ function translatedDate($dateStr) {
                 <h3 class="text-sm font-semibold text-gray-500 uppercase mb-3"><?= Locale::get('summary') ?? 'Summary' ?></h3>
                 <div class="space-y-3">
                     <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-600"><?= Locale::get('payment_system') ?></span>
+                        <span class="text-xs font-medium text-gray-600">
+                            <?= empty($data['user_id']) ? Locale::get('all') : ($data['payment_system'] == 2 ? Locale::get('payment_system_fixed') : Locale::get('payment_system_week_number')) ?>
+                        </span>
+                    </div>
+                    <?php if ($data['payment_system'] == 2 && !empty($data['user_id'])): ?>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-600"><?= Locale::get('monthly_amount') ?></span>
+                        <span class="text-sm font-medium text-gray-800">$<?= number_format($data['fixed_amount'], 0) ?></span>
+                    </div>
+                    <?php endif; ?>
+                    <div class="flex items-center justify-between">
                         <span class="text-sm text-gray-600"><?= Locale::get('year_goal') ?></span>
                         <span class="text-sm font-bold text-blue-600">$<?= number_format($data['total_year_goal'], 0) ?></span>
                     </div>
@@ -167,6 +179,18 @@ function translatedDate($dateStr) {
             
             <!-- Mobile Stats -->
             <div class="grid grid-cols-2 gap-2 mt-3">
+                <div class="bg-gray-50 rounded-lg p-2 text-center">
+                    <p class="text-xs text-gray-500"><?= Locale::get('payment_system') ?></p>
+                    <p class="text-xs font-medium text-gray-600">
+                        <?= empty($data['user_id']) ? Locale::get('all') : ($data['payment_system'] == 2 ? Locale::get('payment_system_fixed') : Locale::get('payment_system_week_number')) ?>
+                    </p>
+                </div>
+                <?php if ($data['payment_system'] == 2 && !empty($data['user_id'])): ?>
+                <div class="bg-purple-50 rounded-lg p-2 text-center">
+                    <p class="text-xs text-purple-600"><?= Locale::get('monthly_amount') ?></p>
+                    <p class="text-sm font-bold text-purple-800">$<?= number_format($data['fixed_amount'], 0) ?></p>
+                </div>
+                <?php endif; ?>
                 <div class="bg-blue-50 rounded-lg p-2 text-center">
                     <p class="text-xs text-blue-600"><?= Locale::get('year_goal') ?></p>
                     <p class="text-sm font-bold text-blue-800">$<?= number_format($data['total_year_goal'], 0) ?></p>

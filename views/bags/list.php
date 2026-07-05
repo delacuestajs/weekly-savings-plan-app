@@ -149,6 +149,12 @@ if (isset($_SESSION['bag_truncate_download'])):
                 </select>
             </div>
 
+            <div class="mb-4">
+                <label for="bag_create_fixed_amount" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('fixed_monthly_amount') ?></label>
+                <input type="number" id="bag_create_fixed_amount" name="fixed_amount" value="<?= getenv('DEFAULT_FIXED_AMOUNT') ?: 50000 ?>" min="0" step="1000" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <p class="text-xs text-gray-400 mt-1"><?= Locale::get('fixed_monthly_amount_hint') ?></p>
+            </div>
+
             <div class="flex flex-wrap gap-3">
                 <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-6 rounded-lg transition duration-200"><?= Locale::get('save') ?></button>
                 <button type="button" onclick="closeCreateBagModal()" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-6 rounded-lg transition duration-200"><?= Locale::get('cancel') ?></button>
@@ -217,6 +223,12 @@ if (isset($_SESSION['bag_truncate_download'])):
                     <option value="0"><?= Locale::get('role_disabled') ?></option>
                 </select>
                 <p id="editStatusWarning" class="hidden text-xs text-amber-600 mt-1"><?= Locale::get('group_cannot_change_status') ?></p>
+            </div>
+
+            <div class="mb-4">
+                <label for="bag_edit_fixed_amount" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('fixed_monthly_amount') ?></label>
+                <input type="number" id="bag_edit_fixed_amount" name="fixed_amount" min="0" step="1000" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <p class="text-xs text-gray-400 mt-1"><?= Locale::get('fixed_monthly_amount_hint') ?></p>
             </div>
 
             <div class="flex flex-wrap gap-3">
@@ -291,6 +303,7 @@ function openEditBagModal(bagId) {
             document.getElementById('bag_edit_description').value = data.description || '';
             document.getElementById('bag_edit_status').value = (data.status !== undefined && data.status !== null) ? String(data.status) : '1';
             document.getElementById('bag_edit_status_hidden').value = (data.status !== undefined && data.status !== null) ? String(data.status) : '1';
+            document.getElementById('bag_edit_fixed_amount').value = data.fixed_amount || '50000';
             
             // Check if bag has verified payments - disable status if true
             var bagIdStr = String(bagId);

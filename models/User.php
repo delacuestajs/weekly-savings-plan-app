@@ -15,6 +15,7 @@ class User
     public $picture;
     public $comments;
     public $multiplier;
+    public $payment_system;
     public $role;
     public $bag_id;
     public $password;
@@ -291,8 +292,8 @@ class User
 
     public function create()
     {
-        $query = "INSERT INTO {$this->table} (firstname, lastname, username, telephone, picture, comments, multiplier, role, bag_id, password) 
-                  VALUES (:firstname, :lastname, :username, :telephone, :picture, :comments, :multiplier, :role, :bag_id, :password)";
+        $query = "INSERT INTO {$this->table} (firstname, lastname, username, telephone, picture, comments, multiplier, payment_system, role, bag_id, password) 
+                  VALUES (:firstname, :lastname, :username, :telephone, :picture, :comments, :multiplier, :payment_system, :role, :bag_id, :password)";
 
         $stmt = $this->conn->prepare($query);
 
@@ -310,6 +311,7 @@ class User
         $stmt->bindParam(':picture', $this->picture);
         $stmt->bindParam(':comments', $this->comments);
         $stmt->bindParam(':multiplier', $this->multiplier);
+        $stmt->bindParam(':payment_system', $this->payment_system);
         $stmt->bindParam(':role', $this->role);
         $stmt->bindParam(':bag_id', $this->bag_id);
         $stmt->bindParam(':password', $hashedPassword);
@@ -319,7 +321,6 @@ class User
                 return $this->conn->lastInsertId();
             }
         } catch (PDOException $e) {
-            // Duplicate username in same bag
             if ($e->getCode() == 23000) {
                 return false;
             }
@@ -333,7 +334,7 @@ class User
         $query = "UPDATE {$this->table} 
                   SET firstname = :firstname, lastname = :lastname, username = :username, 
                       telephone = :telephone, picture = :picture, comments = :comments, 
-                      multiplier = :multiplier, role = :role, bag_id = :bag_id
+                      multiplier = :multiplier, payment_system = :payment_system, role = :role, bag_id = :bag_id
                   WHERE id = :id";
 
         $stmt = $this->conn->prepare($query);
@@ -350,6 +351,7 @@ class User
         $stmt->bindParam(':picture', $this->picture);
         $stmt->bindParam(':comments', $this->comments);
         $stmt->bindParam(':multiplier', $this->multiplier);
+        $stmt->bindParam(':payment_system', $this->payment_system);
         $stmt->bindParam(':role', $this->role);
         $stmt->bindParam(':bag_id', $this->bag_id);
         $stmt->bindParam(':id', $this->id);
