@@ -42,11 +42,11 @@ return [
     'click_to_view_plan' => 'Clic para ver plan',
     
     'how_it_works' => '¿Cómo funciona?',
-    'week_target_formula' => 'Cada semana tiene un monto objetivo = Número de Semana × $1,000',
+    'week_target_formula' => 'Número de Semana: Semana × $1,000. Pago Fijo: Monto mensual ÷ semanas del mes.',
     'week_values_example' => 'Semana 1 = $1,000 | Semana 2 = $2,000 | ... | Semana 52 = $52,000',
-    'multiplier_explanation' => 'El Multiplicador establece cuántas veces ahorras por semana',
+    'multiplier_explanation' => 'El Multiplicador escala tu meta semanal (ej: x2 = doble).',
     'payments_applied' => 'Los pagos se aplican desde la Semana 1 en adelante',
-    'status_legend' => 'Verde = Pagado | Amarillo = Parcial | Rojo = No pagado',
+    'status_legend' => 'Verde = Pagado | Amarillo = Parcial | Gris = No pagado',
     
     'savings_payments' => 'Pagos de Ahorro',
     'total_savings' => 'Total de Ahorros',

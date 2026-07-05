@@ -42,11 +42,11 @@ return [
     'click_to_view_plan' => 'Click to view plan',
     
     'how_it_works' => 'How it works:',
-    'week_target_formula' => 'Each week has a target amount = Week Number × $1,000',
+    'week_target_formula' => 'Week Number: Week × $1,000. Fixed Payment: Monthly amount ÷ weeks in month.',
     'week_values_example' => 'Week 1 = $1,000 | Week 2 = $2,000 | ... | Week 52 = $52,000',
-    'multiplier_explanation' => 'The Multiplier sets how many times you save per week',
+    'multiplier_explanation' => 'The Multiplier scales your weekly goal (e.g., x2 = double).',
     'payments_applied' => 'Payments are applied from Week 1 onwards',
-    'status_legend' => 'Green = Fully paid | Yellow = Partially paid | Red = Unpaid',
+    'status_legend' => 'Green = Paid | Yellow = Partial | Gray = Unpaid',
     
     'savings_payments' => 'Savings Payments',
     'total_savings' => 'Total Savings',
