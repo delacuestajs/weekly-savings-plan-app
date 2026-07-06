@@ -8,7 +8,7 @@ $bags = $bagModel->getAll()->fetchAll(PDO::FETCH_ASSOC);
 
 <style>body{overflow:hidden}</style>
 
-<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+<div class="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 z-20">
     <div class="max-w-md w-full space-y-8">
         <div>
             <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
