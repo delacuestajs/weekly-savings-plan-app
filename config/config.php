@@ -11,7 +11,7 @@ return [
     'base_path' => rtrim($basePath, '/'),
 
     // App version and build info
-    'app_version' => getenv('APP_VERSION') ?: '1.4.1',
+    'app_version' => getenv('APP_VERSION') ?: '1.4.2',
     'app_build_date' => getenv('APP_BUILD_DATE') ?: '2026-07-06',
 
     // Payment system defaults
