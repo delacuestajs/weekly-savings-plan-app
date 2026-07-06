@@ -6,7 +6,12 @@ $bagModel = new Bag();
 $bags = $bagModel->getAll()->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
-<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 to-indigo-100">
+<style>
+    body { overflow: hidden; }
+    #mainContent { display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
+</style>
+
+<div class="flex-1 flex items-center justify-center px-4 bg-gradient-to-br from-blue-50 to-indigo-100 overflow-hidden">
     <div class="max-w-md w-full space-y-8">
         <div>
             <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
