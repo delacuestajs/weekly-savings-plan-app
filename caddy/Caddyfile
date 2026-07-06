@@ -1,6 +1,6 @@
 {$DOMAIN_NAME} {
     handle_path /payments/* {
-        header X-Base-Path /payments
+        request_header X-Base-Path /payments
         reverse_proxy app:80
     }
 
