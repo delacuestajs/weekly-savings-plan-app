@@ -1,6 +1,8 @@
 FROM php:8.2-apache
 
-RUN apt-get update && apt-get install -y tzdata libjpeg62-turbo-dev libpng-dev libfreetype6-dev && \
+RUN apt-get update && apt-get install -y \
+    tzdata libjpeg62-turbo-dev libpng-dev libfreetype6-dev \
+    msmtp gettext-base && \
     ln -sf /usr/share/zoneinfo/America/Bogota /etc/localtime && \
     echo "America/Bogota" > /etc/timezone && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -11,6 +13,10 @@ RUN docker-php-ext-configure gd --with-jpeg --with-freetype && \
     docker-php-ext-install pdo pdo_mysql gd exif
 
 COPY . /var/www/html/
+
+COPY docker/msmtprc.template /etc/msmtprc.template
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 RUN chown -R www-data:www-data /var/www/html && \
     mkdir -p /var/www/html/uploads && \
@@ -27,3 +33,5 @@ RUN echo "upload_max_filesize = 50M" >> /usr/local/etc/php/conf.d/uploads.ini &&
     echo "log_errors = On" >> /usr/local/etc/php/conf.d/uploads.ini
 
 EXPOSE 80
+
+ENTRYPOINT ["entrypoint.sh"]
