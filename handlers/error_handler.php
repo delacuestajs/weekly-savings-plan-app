@@ -87,6 +87,55 @@ function app_log_error($message, $file, $line, $code = 0)
     } catch (\Exception $e) {
         // Silently fail - don't cause another error
     }
+
+    // Email superadmins
+    app_notify_superadmins($message, $file, $line, $code);
+}
+
+function app_notify_superadmins($message, $file, $line, $code)
+{
+    try {
+        require_once __DIR__ . '/../config/database.php';
+        require_once __DIR__ . '/../helpers/mail.php';
+
+        $database = new Database();
+        $conn = $database->getConnection();
+
+        $query = "SELECT email, firstname FROM users WHERE role = 3 AND status = 1 AND deleted_at IS NULL AND email IS NOT NULL AND email != ''";
+        $stmt = $conn->query($query);
+        $superadmins = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (empty($superadmins)) return;
+
+        $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+        $errorFile = basename($file);
+        $subject = "Savings App - System Error";
+        $detailsHtml = htmlspecialchars("Type: Error\nMessage: {$message}\nFile: {$errorFile}\nLine: {$line}\nCode: {$code}", ENT_QUOTES);
+        $requestUri = htmlspecialchars($_SERVER['REQUEST_URI'] ?? 'N/A', ENT_QUOTES);
+        $userName = htmlspecialchars(($_SESSION['firstname'] ?? 'Unknown') . ' ' . ($_SESSION['lastname'] ?? ''), ENT_QUOTES);
+
+        foreach ($superadmins as $admin) {
+            $adminName = htmlspecialchars($admin['firstname'], ENT_QUOTES);
+            $body = "<div style='font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:20px;'>
+                <h2 style='color:#dc2626;'>System Error</h2>
+                <p>Hello {$adminName},</p>
+                <p>An unexpected error occurred in <strong>Savings App</strong>.</p>
+                <p><strong>Error:</strong> " . htmlspecialchars($message) . "</p>
+                <p><strong>File:</strong> {$errorFile}:{$line}</p>";
+            if (!empty($userName) && $userName !== 'Unknown ') {
+                $body .= "<p><strong>User:</strong> {$userName}</p>";
+            }
+            $body .= "<p><strong>URL:</strong> {$requestUri}</p>
+                <p><strong>Time:</strong> " . date('Y-m-d H:i:s') . "</p>
+                <hr style='border:none;border-top:1px solid #e5e7eb;margin:20px 0;'>
+                <p style='font-size:12px;color:#9ca3af;'>Savings App</p>
+            </div>";
+
+            Mail::sendAsync($admin['email'], $subject, $body);
+        }
+    } catch (\Exception $e) {
+        error_log("Failed to notify superadmins: " . $e->getMessage());
+    }
 }
 
 function app_show_error_modal()

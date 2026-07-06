@@ -5,6 +5,7 @@ require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../models/WeeklySaving.php';
 require_once __DIR__ . '/../controllers/Auth.php';
 require_once __DIR__ . '/../models/ActivityLog.php';
+require_once __DIR__ . '/../helpers/mail.php';
 
 class SavingController
 {
@@ -123,6 +124,10 @@ class SavingController
             $ownerName = $this->getUserName($this->saving->user_id);
             ActivityLog::log('saving_created', $this->saving->user_id, $ownerName, 
                 ['amount' => $this->saving->amount, 'method' => $this->saving->payment_method, 'description' => $this->saving->description]);
+
+            // Send email to admin users of this bag
+            $this->sendPaymentCreatedEmail($this->saving->user_id, $this->saving->amount, $this->saving->payment_method, $this->saving->description);
+
             header('Location: ' . $returnUrl . '&toast=success&message=' . urlencode(Locale::get('created_successfully')));
             exit;
         }
@@ -261,6 +266,10 @@ class SavingController
             $ownerName = $this->getUserName($saving['user_id']);
             ActivityLog::log('saving_verified', $saving['user_id'], $ownerName, 
                 ['saving_id' => $id, 'amount' => $saving['amount'], 'description' => $saving['description']]);
+
+            // Send email to payment owner
+            $this->sendPaymentVerifiedEmail($saving['user_id'], $saving['amount'], $saving['payment_method'], $saving['description']);
+
             header('Location: index.php?action=payments&toast=success&message=' . urlencode(Locale::get('payment_verified')));
             exit;
         }
@@ -304,5 +313,100 @@ class SavingController
         
         echo json_encode($saving);
         exit;
+    }
+
+    private function sendPaymentCreatedEmail($userId, $amount, $paymentMethod, $description)
+    {
+        $user = $this->user->getById($userId);
+        if (!$user) return;
+
+        $admins = $this->user->getAdminsByBag($user['bag_id']);
+        if (empty($admins)) return;
+
+        $lang = Locale::getCurrentLanguage();
+        $payerName = $user['firstname'] . ' ' . $user['lastname'];
+        $subject = $lang === 'es' ? "Nuevo pago registrado" : "New payment recorded";
+        $methodLabel = $lang === 'es' ? 'Método de pago' : 'Payment method';
+        $methodValue = $lang === 'es' ? ($paymentMethod == 2 ? 'Pago Fijo' : 'Número de Semana') : ($paymentMethod == 2 ? 'Fixed Payment' : 'Week Number');
+
+        foreach ($admins as $admin) {
+            if (empty($admin['email'])) continue;
+
+            $adminName = $admin['firstname'];
+
+            if ($lang === 'es') {
+                $body = "<div style='font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:20px;'>
+                    <h2 style='color:#2563eb;'>Hola {$adminName}</h2>
+                    <p>Se ha registrado un nuevo pago en <strong>Savings App</strong>.</p>
+                    <p><strong>Usuario:</strong> {$payerName}</p>
+                    <p><strong>Monto:</strong> $" . number_format($amount, 0, ',', '.') . "</p>
+                    <p><strong>{$methodLabel}:</strong> {$methodValue}</p>";
+                if ($description) {
+                    $body .= "<p><strong>Descripción:</strong> " . htmlspecialchars($description) . "</p>";
+                }
+                $body .= "<p><strong>Estado:</strong> Pendiente de verificación</p>
+                    <hr style='border:none;border-top:1px solid #e5e7eb;margin:20px 0;'>
+                    <p style='font-size:12px;color:#9ca3af;'>Savings App</p>
+                </div>";
+            } else {
+                $body = "<div style='font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:20px;'>
+                    <h2 style='color:#2563eb;'>Hello {$adminName}</h2>
+                    <p>A new payment has been recorded in <strong>Savings App</strong>.</p>
+                    <p><strong>User:</strong> {$payerName}</p>
+                    <p><strong>Amount:</strong> $" . number_format($amount, 0, ',', '.') . "</p>
+                    <p><strong>{$methodLabel}:</strong> {$methodValue}</p>";
+                if ($description) {
+                    $body .= "<p><strong>Description:</strong> " . htmlspecialchars($description) . "</p>";
+                }
+                $body .= "<p><strong>Status:</strong> Pending verification</p>
+                    <hr style='border:none;border-top:1px solid #e5e7eb;margin:20px 0;'>
+                    <p style='font-size:12px;color:#9ca3af;'>Savings App</p>
+                </div>";
+            }
+
+            Mail::sendAsync($admin['email'], $subject, $body);
+        }
+    }
+
+    private function sendPaymentVerifiedEmail($userId, $amount, $paymentMethod, $description)
+    {
+        $user = $this->user->getById($userId);
+        if (!$user || empty($user['email'])) return;
+
+        $lang = Locale::getCurrentLanguage();
+        $name = $user['firstname'];
+        $subject = $lang === 'es' ? "Pago verificado" : "Payment verified";
+        $methodLabel = $lang === 'es' ? 'Método de pago' : 'Payment method';
+        $methodValue = $lang === 'es' ? ($paymentMethod == 2 ? 'Pago Fijo' : 'Número de Semana') : ($paymentMethod == 2 ? 'Fixed Payment' : 'Week Number');
+
+        if ($lang === 'es') {
+            $body = "<div style='font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:20px;'>
+                <h2 style='color:#2563eb;'>Hola {$name}</h2>
+                <p>Tu pago en <strong>Savings App</strong> ha sido verificado.</p>
+                <p><strong>Monto:</strong> $" . number_format($amount, 0, ',', '.') . "</p>
+                <p><strong>{$methodLabel}:</strong> {$methodValue}</p>";
+            if ($description) {
+                $body .= "<p><strong>Descripción:</strong> " . htmlspecialchars($description) . "</p>";
+            }
+            $body .= "<p><strong>Estado:</strong> Verificado ✓</p>
+                <hr style='border:none;border-top:1px solid #e5e7eb;margin:20px 0;'>
+                <p style='font-size:12px;color:#9ca3af;'>Savings App</p>
+            </div>";
+        } else {
+            $body = "<div style='font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:20px;'>
+                <h2 style='color:#2563eb;'>Hello {$name}</h2>
+                <p>Your payment in <strong>Savings App</strong> has been verified.</p>
+                <p><strong>Amount:</strong> $" . number_format($amount, 0, ',', '.') . "</p>
+                <p><strong>{$methodLabel}:</strong> {$methodValue}</p>";
+            if ($description) {
+                $body .= "<p><strong>Description:</strong> " . htmlspecialchars($description) . "</p>";
+            }
+            $body .= "<p><strong>Status:</strong> Verified ✓</p>
+                <hr style='border:none;border-top:1px solid #e5e7eb;margin:20px 0;'>
+                <p style='font-size:12px;color:#9ca3af;'>Savings App</p>
+            </div>";
+        }
+
+        Mail::sendAsync($user['email'], $subject, $body);
     }
 }

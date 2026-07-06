@@ -12,6 +12,7 @@ class User
     public $lastname;
     public $username;
     public $telephone;
+    public $email;
     public $picture;
     public $comments;
     public $multiplier;
@@ -292,8 +293,8 @@ class User
 
     public function create()
     {
-        $query = "INSERT INTO {$this->table} (firstname, lastname, username, telephone, picture, comments, multiplier, payment_system, role, bag_id, password) 
-                  VALUES (:firstname, :lastname, :username, :telephone, :picture, :comments, :multiplier, :payment_system, :role, :bag_id, :password)";
+        $query = "INSERT INTO {$this->table} (firstname, lastname, username, telephone, email, picture, comments, multiplier, payment_system, role, bag_id, password) 
+                  VALUES (:firstname, :lastname, :username, :telephone, :email, :picture, :comments, :multiplier, :payment_system, :role, :bag_id, :password)";
 
         $stmt = $this->conn->prepare($query);
 
@@ -308,6 +309,7 @@ class User
         $stmt->bindParam(':lastname', $this->lastname);
         $stmt->bindParam(':username', $this->username);
         $stmt->bindParam(':telephone', $this->telephone);
+        $stmt->bindParam(':email', $this->email);
         $stmt->bindParam(':picture', $this->picture);
         $stmt->bindParam(':comments', $this->comments);
         $stmt->bindParam(':multiplier', $this->multiplier);
@@ -333,7 +335,7 @@ class User
     {
         $query = "UPDATE {$this->table} 
                   SET firstname = :firstname, lastname = :lastname, username = :username, 
-                      telephone = :telephone, picture = :picture, comments = :comments, 
+                      telephone = :telephone, email = :email, picture = :picture, comments = :comments, 
                       multiplier = :multiplier, payment_system = :payment_system, role = :role, bag_id = :bag_id
                   WHERE id = :id";
 
@@ -348,6 +350,7 @@ class User
         $stmt->bindParam(':lastname', $this->lastname);
         $stmt->bindParam(':username', $this->username);
         $stmt->bindParam(':telephone', $this->telephone);
+        $stmt->bindParam(':email', $this->email);
         $stmt->bindParam(':picture', $this->picture);
         $stmt->bindParam(':comments', $this->comments);
         $stmt->bindParam(':multiplier', $this->multiplier);
@@ -397,5 +400,17 @@ class User
     public function getFullName()
     {
         return $this->firstname . ' ' . $this->lastname;
+    }
+
+    public function getAdminsByBag($bagId)
+    {
+        $query = "SELECT * FROM {$this->table} 
+                  WHERE bag_id = :bag_id AND role IN (2, 3) AND status = 1 AND deleted_at IS NULL 
+                  AND email IS NOT NULL AND email != ''
+                  ORDER BY role DESC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':bag_id', $bagId);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

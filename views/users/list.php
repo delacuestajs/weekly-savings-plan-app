@@ -155,6 +155,11 @@ $allBags = $bagModel->getAll()->fetchAll(PDO::FETCH_ASSOC);
             </div>
 
             <div class="mb-4">
+                <label for="user_create_email" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('email') ?> *</label>
+                <input type="email" id="user_create_email" name="email" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="<?= Locale::get('email_placeholder') ?>">
+            </div>
+
+            <div class="mb-4">
                 <label for="user_create_comments" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('comments') ?></label>
                 <textarea id="user_create_comments" name="comments" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
             </div>
@@ -269,6 +274,11 @@ $allBags = $bagModel->getAll()->fetchAll(PDO::FETCH_ASSOC);
             </div>
 
             <div class="mb-4">
+                <label for="user_edit_email" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('email') ?> *</label>
+                <input type="email" id="user_edit_email" name="email" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="<?= Locale::get('email_placeholder') ?>">
+            </div>
+
+            <div class="mb-4">
                 <label for="user_edit_comments" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('comments') ?></label>
                 <textarea id="user_edit_comments" name="comments" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
             </div>
@@ -379,6 +389,7 @@ function openUserEditModal(userId) {
             document.getElementById('user_edit_lastname').value = data.lastname || '';
             document.getElementById('user_edit_username').value = data.username || '';
             document.getElementById('user_edit_telephone').value = data.telephone || '';
+            document.getElementById('user_edit_email').value = data.email || '';
             document.getElementById('user_edit_comments').value = data.comments || '';
             document.getElementById('user_edit_multiplier').value = data.multiplier || '1';
             document.getElementById('user_edit_payment_system').value = data.payment_system || '1';

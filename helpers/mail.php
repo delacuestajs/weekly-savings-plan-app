@@ -25,6 +25,7 @@ class Mail
             'user' => getenv('SMTP_USER') ?: ($env['SMTP_USER'] ?? ''),
             'pass' => getenv('SMTP_PASS') ?: ($env['SMTP_PASS'] ?? ''),
             'from' => getenv('SMTP_FROM') ?: ($env['SMTP_FROM'] ?? ''),
+            'from_name' => getenv('SMTP_FROM_NAME') ?: ($env['SMTP_FROM_NAME'] ?? 'Savings App'),
         ];
     }
 
@@ -37,7 +38,8 @@ class Mail
             return false;
         }
 
-        $headers = "From: {$from}\r\n";
+        $fromName = $config['from_name'];
+        $headers = "From: \"{$fromName}\" <{$from}>\r\n";
         $headers .= "To: {$to}\r\n";
         $headers .= "Subject: {$subject}\r\n";
         $headers .= "Date: " . date('r') . "\r\n";
@@ -93,5 +95,23 @@ class Mail
         }
 
         return true;
+    }
+
+    public static function sendAsync($to, $subject, $htmlBody)
+    {
+        if (empty($to) || empty($htmlBody)) return;
+
+        $enabled = getenv('EMAIL_NOTIFICATIONS_ENABLED') ?: ($_ENV['EMAIL_NOTIFICATIONS_ENABLED'] ?? 'yes');
+        if (strtolower(trim($enabled)) !== 'yes') return;
+
+        $tempFile = tempnam(sys_get_temp_dir(), 'mail_');
+        file_put_contents($tempFile, $htmlBody);
+
+        $toEscaped = escapeshellarg($to);
+        $subjectEscaped = escapeshellarg($subject);
+        $bodyEscaped = escapeshellarg($tempFile);
+        $script = escapeshellarg(__DIR__ . '/send_async.php');
+
+        exec("nohup php {$script} {$toEscaped} {$subjectEscaped} {$bodyEscaped} > /dev/null 2>&1 &");
     }
 }

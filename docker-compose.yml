@@ -31,6 +31,7 @@ services:
       - SMTP_USER=${SMTP_USER}
       - SMTP_PASS=${SMTP_PASS}
       - SMTP_FROM=${SMTP_FROM}
+      - EMAIL_NOTIFICATIONS_ENABLED=${EMAIL_NOTIFICATIONS_ENABLED:-yes}
     depends_on:
       - db
     networks:

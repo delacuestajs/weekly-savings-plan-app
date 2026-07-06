@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../models/ActivityLog.php';
+require_once __DIR__ . '/../helpers/mail.php';
 
 class UserController
 {
@@ -49,6 +50,7 @@ class UserController
         $this->user->lastname = trim($_POST['lastname'] ?? '');
         $this->user->username = !empty($_POST['username']) ? trim($_POST['username']) : null;
         $this->user->telephone = !empty($_POST['telephone']) ? trim($_POST['telephone']) : null;
+        $this->user->email = !empty($_POST['email']) ? trim($_POST['email']) : null;
         $this->user->comments = !empty($_POST['comments']) ? trim($_POST['comments']) : null;
         $this->user->multiplier = !empty($_POST['multiplier']) ? (int)$_POST['multiplier'] : 1;
         $this->user->payment_system = !empty($_POST['payment_system']) ? (int)$_POST['payment_system'] : 1;
@@ -59,6 +61,17 @@ class UserController
         // Admin cannot create superadmin users
         if ($this->user->role == 3 && !Auth::isSuperAdmin()) {
             header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('admin_required')));
+            exit;
+        }
+
+        // Email is required
+        if (empty($this->user->email)) {
+            header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('email_required')));
+            exit;
+        }
+
+        if (!filter_var($this->user->email, FILTER_VALIDATE_EMAIL)) {
+            header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('email_invalid')));
             exit;
         }
 
@@ -91,6 +104,18 @@ class UserController
                 'name' => $this->user->firstname . ' ' . $this->user->lastname,
                 'group' => $bag ? ($bag['long_name'] ?? $bag['name']) : null
             ];
+
+            // Send email to new user
+            if (!empty($this->user->email)) {
+                $this->sendUserCreatedEmail(
+                    $this->user->email,
+                    $this->user->firstname,
+                    $this->user->username,
+                    User::getDefaultPassword(),
+                    $bag ? ($bag['long_name'] ?? $bag['name']) : ''
+                );
+            }
+
             header('Location: ' . $returnUrl . '&toast=success&message=' . urlencode(Locale::get('created_successfully')));
             exit;
         }
@@ -110,6 +135,7 @@ class UserController
         $this->user->lastname = trim($_POST['lastname'] ?? '');
         $this->user->username = !empty($_POST['username']) ? trim($_POST['username']) : null;
         $this->user->telephone = !empty($_POST['telephone']) ? trim($_POST['telephone']) : null;
+        $this->user->email = !empty($_POST['email']) ? trim($_POST['email']) : null;
         $this->user->comments = !empty($_POST['comments']) ? trim($_POST['comments']) : null;
         $this->user->multiplier = !empty($_POST['multiplier']) ? (int)$_POST['multiplier'] : 1;
         $this->user->payment_system = !empty($_POST['payment_system']) ? (int)$_POST['payment_system'] : 1;
@@ -132,6 +158,17 @@ class UserController
         // Admin cannot change superadmin role
         if (($existingUser['role'] ?? 0) == 3 && !Auth::isSuperAdmin()) {
             header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('admin_required')));
+            exit;
+        }
+
+        // Email is required
+        if (empty($this->user->email)) {
+            header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('email_required')));
+            exit;
+        }
+
+        if (!filter_var($this->user->email, FILTER_VALIDATE_EMAIL)) {
+            header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('email_invalid')));
             exit;
         }
 
@@ -244,6 +281,18 @@ class UserController
                 'group' => $bag ? ($bag['long_name'] ?? $bag['name']) : null,
                 'reset' => true
             ];
+
+            // Send email about password reset
+            if (!empty($userData['email'])) {
+                $this->sendPasswordResetEmail(
+                    $userData['email'],
+                    $userData['firstname'],
+                    $userData['username'],
+                    User::getDefaultPassword(),
+                    $bag ? ($bag['long_name'] ?? $bag['name']) : ''
+                );
+            }
+
             header('Location: index.php?module=user&toast=success&message=' . urlencode(Locale::get('password_reset_successfully')));
             exit;
         }
@@ -323,6 +372,18 @@ class UserController
         $firstname = trim($_POST['firstname'] ?? '');
         $lastname = trim($_POST['lastname'] ?? '');
         $telephone = trim($_POST['telephone'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+
+        // Email is required
+        if (empty($email)) {
+            header('Location: index.php?toast=error&message=' . urlencode(Locale::get('email_required')));
+            exit;
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            header('Location: index.php?toast=error&message=' . urlencode(Locale::get('email_invalid')));
+            exit;
+        }
 
         $changes = [];
         if ($firstname !== $user['firstname']) {
@@ -334,12 +395,16 @@ class UserController
         if ($telephone !== ($user['telephone'] ?? '')) {
             $changes['Telephone'] = ['old' => $user['telephone'] ?? '', 'new' => $telephone];
         }
+        if ($email !== ($user['email'] ?? '')) {
+            $changes['Email'] = ['old' => $user['email'] ?? '', 'new' => $email];
+        }
 
         $this->user->id = $userId;
         $this->user->firstname = $firstname;
         $this->user->lastname = $lastname;
         $this->user->username = $user['username'];
         $this->user->telephone = $telephone;
+        $this->user->email = $email;
         $this->user->comments = $user['comments'];
         $this->user->multiplier = $user['multiplier'];
         $this->user->payment_system = $user['payment_system'] ?? 1;
@@ -399,5 +464,71 @@ class UserController
             ['reason' => 'database_error', 'picture_status' => $pictureResult ? 'uploaded' : $pictureError]);
         header('Location: index.php?toast=error&message=' . urlencode(Locale::get('error_updating')));
         exit;
+    }
+
+    private function sendUserCreatedEmail($to, $firstname, $username, $password, $groupName)
+    {
+        $lang = Locale::getCurrentLanguage();
+        $subject = $lang === 'es' ? "Tu cuenta ha sido creada" : "Your account has been created";
+        $name = $firstname;
+
+        if ($lang === 'es') {
+            $body = "<div style='font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:20px;'>
+                <h2 style='color:#2563eb;'>Hola {$name}</h2>
+                <p>Tu cuenta en <strong>Savings App</strong> ha sido creada exitosamente.</p>
+                <p><strong>Grupo:</strong> {$groupName}</p>
+                <p><strong>Usuario:</strong> {$username}</p>
+                <p><strong>Contraseña:</strong> {$password}</p>
+                <p style='color:#dc2626;font-size:13px;'>Por favor cambia tu contraseña después de iniciar sesión.</p>
+                <hr style='border:none;border-top:1px solid #e5e7eb;margin:20px 0;'>
+                <p style='font-size:12px;color:#9ca3af;'>Savings App</p>
+            </div>";
+        } else {
+            $body = "<div style='font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:20px;'>
+                <h2 style='color:#2563eb;'>Hello {$name}</h2>
+                <p>Your account in <strong>Savings App</strong> has been created successfully.</p>
+                <p><strong>Group:</strong> {$groupName}</p>
+                <p><strong>Username:</strong> {$username}</p>
+                <p><strong>Password:</strong> {$password}</p>
+                <p style='color:#dc2626;font-size:13px;'>Please change your password after your first login.</p>
+                <hr style='border:none;border-top:1px solid #e5e7eb;margin:20px 0;'>
+                <p style='font-size:12px;color:#9ca3af;'>Savings App</p>
+            </div>";
+        }
+
+        Mail::sendAsync($to, $subject, $body);
+    }
+
+    private function sendPasswordResetEmail($to, $firstname, $username, $password, $groupName)
+    {
+        $lang = Locale::getCurrentLanguage();
+        $subject = $lang === 'es' ? "Contraseña restablecida" : "Password reset";
+        $name = $firstname;
+
+        if ($lang === 'es') {
+            $body = "<div style='font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:20px;'>
+                <h2 style='color:#2563eb;'>Hola {$name}</h2>
+                <p>Tu contraseña en <strong>Savings App</strong> ha sido restablecida.</p>
+                <p><strong>Grupo:</strong> {$groupName}</p>
+                <p><strong>Usuario:</strong> {$username}</p>
+                <p><strong>Nueva contraseña:</strong> {$password}</p>
+                <p style='color:#dc2626;font-size:13px;'>Por favor cambia tu contraseña después de iniciar sesión.</p>
+                <hr style='border:none;border-top:1px solid #e5e7eb;margin:20px 0;'>
+                <p style='font-size:12px;color:#9ca3af;'>Savings App</p>
+            </div>";
+        } else {
+            $body = "<div style='font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:20px;'>
+                <h2 style='color:#2563eb;'>Hello {$name}</h2>
+                <p>Your password in <strong>Savings App</strong> has been reset.</p>
+                <p><strong>Group:</strong> {$groupName}</p>
+                <p><strong>Username:</strong> {$username}</p>
+                <p><strong>New password:</strong> {$password}</p>
+                <p style='color:#dc2626;font-size:13px;'>Please change your password after logging in.</p>
+                <hr style='border:none;border-top:1px solid #e5e7eb;margin:20px 0;'>
+                <p style='font-size:12px;color:#9ca3af;'>Savings App</p>
+            </div>";
+        }
+
+        Mail::sendAsync($to, $subject, $body);
     }
 }
