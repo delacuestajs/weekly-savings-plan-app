@@ -8,6 +8,7 @@ $bags = $bagModel->getAll()->fetchAll(PDO::FETCH_ASSOC);
 
 <style>
     body { overflow: hidden; }
+    #mainContent > header { display: none; }
     #mainContent { display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
 </style>
 
