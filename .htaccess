@@ -4,11 +4,27 @@ php_value memory_limit 512M
 php_value max_execution_time 600
 php_value max_input_time 600
 
-# Block access to sensitive files
+# Block .env files
 <FilesMatch "^\.env">
     Require all denied
 </FilesMatch>
 
-<Files "\.env.example">
+# Block markdown files
+<FilesMatch "\.(md|MD)$">
+    Require all denied
+</FilesMatch>
+
+# Block Dockerfile
+<Files "Dockerfile">
     Require all denied
 </Files>
+
+# Block docker-compose files
+<FilesMatch "^docker-compose">
+    Require all denied
+</FilesMatch>
+
+# Block other dotfiles (except .htaccess)
+<FilesMatch "^\.((?!htaccess).)+$">
+    Require all denied
+</FilesMatch>
