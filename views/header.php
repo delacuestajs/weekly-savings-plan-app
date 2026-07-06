@@ -4,6 +4,9 @@ require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../models/Bag.php';
 Auth::startSession();
 
+$appConfig = require __DIR__ . '/../config/config.php';
+$basePath = $appConfig['base_path'];
+
 // Load current bag/group data
 $currentBag = null;
 $currentBagThumbUrl = null;
@@ -27,9 +30,9 @@ if (Auth::isLoggedIn() && Auth::getBagId()) {
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="Savings">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/svg+xml" href="/uploads/icon.svg">
-    <link rel="apple-touch-icon" href="/uploads/icon-180.png">
+    <link rel="manifest" href="<?= $basePath ?>/manifest.json">
+    <link rel="icon" type="image/svg+xml" href="<?= $basePath ?>/uploads/icon.svg">
+    <link rel="apple-touch-icon" href="<?= $basePath ?>/uploads/icon-180.png">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100">
@@ -314,7 +317,6 @@ if (Auth::isLoggedIn() && Auth::getBagId()) {
             <?php endif; ?>
             
             <!-- App Info -->
-            <?php $appConfig = require __DIR__ . '/../config/config.php'; ?>
             <div class="text-center space-y-2">
                 <div class="flex items-center justify-center gap-2 mb-3">
                     <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1120,7 +1122,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 // --- PWA: Service Worker ---
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js').catch(function() {});
+    navigator.serviceWorker.register('<?= $basePath ?>/sw.js').catch(function() {});
 }
 
 // --- PWA: Back button logout confirmation ---

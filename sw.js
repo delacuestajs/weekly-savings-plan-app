@@ -1,10 +1,9 @@
 const CACHE_NAME = 'savings-v1';
 const STATIC_ASSETS = [
-  '/',
-  '/index.php',
-  '/manifest.json',
-  '/views/header.php',
-  '/views/footer.php'
+  'index.php',
+  'manifest.json',
+  'views/header.php',
+  'views/footer.php'
 ];
 
 // Install — cache static assets
@@ -51,7 +50,7 @@ self.addEventListener('fetch', function(event) {
       .catch(function() {
         // Offline fallback
         return caches.match(event.request).then(function(cached) {
-          return cached || caches.match('/index.php');
+          return cached || caches.match('index.php');
         });
       })
   );

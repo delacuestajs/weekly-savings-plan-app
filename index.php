@@ -15,7 +15,8 @@ Auth::startSession();
 
 if (isset($_GET['lang'])) {
     Locale::setLanguage($_GET['lang']);
-    header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?'));
+    $basePath = $_SERVER['HTTP_X_BASE_PATH'] ?? '';
+    header('Location: ' . $basePath . strtok($_SERVER['REQUEST_URI'], '?'));
     exit;
 }
 
