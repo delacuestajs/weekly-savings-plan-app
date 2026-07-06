@@ -22,14 +22,14 @@ if (Auth::isLoggedIn() && Auth::getBagId()) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Savings Payment System</title>
     <meta name="description" content="Track weekly savings payments for individuals or groups">
-    <meta name="theme-color" content="#3b82f6">
+    <meta name="theme-color" content="#2563eb">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="Savings">
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/svg+xml" href="/uploads/icon.svg">
-    <link rel="apple-touch-icon" href="/uploads/icon.svg">
+    <link rel="apple-touch-icon" href="/uploads/icon-180.png">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100">
