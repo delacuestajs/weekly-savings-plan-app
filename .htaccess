@@ -3,3 +3,12 @@ php_value post_max_size 50M
 php_value memory_limit 512M
 php_value max_execution_time 600
 php_value max_input_time 600
+
+# Block access to sensitive files
+<FilesMatch "^\.env">
+    Require all denied
+</FilesMatch>
+
+<Files "\.env.example">
+    Require all denied
+</Files>
