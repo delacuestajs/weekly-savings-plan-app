@@ -4,27 +4,19 @@ php_value memory_limit 512M
 php_value max_execution_time 600
 php_value max_input_time 600
 
-# Block .env files
-<FilesMatch "^\.env">
-    Require all denied
-</FilesMatch>
+RewriteEngine On
 
-# Block markdown files
-<FilesMatch "\.(md|MD)$">
-    Require all denied
-</FilesMatch>
+# Return 404 for .env files
+RewriteRule ^\.env - [R=404,L]
 
-# Block Dockerfile
-<Files "Dockerfile">
-    Require all denied
-</Files>
+# Return 404 for markdown files
+RewriteRule \.(md|MD)$ - [R=404,L]
 
-# Block docker-compose files
-<FilesMatch "^docker-compose">
-    Require all denied
-</FilesMatch>
+# Return 404 for Dockerfile
+RewriteRule ^Dockerfile$ - [R=404,L]
 
-# Block other dotfiles (except .htaccess)
-<FilesMatch "^\.((?!htaccess).)+$">
-    Require all denied
-</FilesMatch>
+# Return 404 for docker-compose files
+RewriteRule ^docker-compose - [R=404,L]
+
+# Return 404 for all dotfiles (except .htaccess)
+RewriteRule ^\.((?!htaccess).)+$ - [R=404,L]
