@@ -10,4 +10,6 @@ php_flag engine off
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteRule \.(php|php3|php4|php5|phtml|pl|py|jsp|asp|htm|shtml|sh|cgi)$ - [F,L]
+    # Block dumps directory (backup files)
+    RewriteRule ^dumps/ - [R=404,L]
 </IfModule>

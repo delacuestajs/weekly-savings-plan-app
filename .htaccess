@@ -6,17 +6,15 @@ php_value max_input_time 600
 
 RewriteEngine On
 
-# Return 404 for .env files
+# --- Block sensitive directories (return 404) ---
+RewriteRule ^(config|controllers|models|views|lang|handlers|helpers|database|caddy|docker|app-icons|secrets|local|\.git)/ - [R=404,L]
+
+# --- Block uploads/dumps (backup files) ---
+RewriteRule ^uploads/dumps/ - [R=404,L]
+
+# --- Block specific sensitive files ---
 RewriteRule ^\.env - [R=404,L]
-
-# Return 404 for markdown files
 RewriteRule \.(md|MD)$ - [R=404,L]
-
-# Return 404 for Dockerfile
 RewriteRule ^Dockerfile$ - [R=404,L]
-
-# Return 404 for docker-compose files
 RewriteRule ^docker-compose - [R=404,L]
-
-# Return 404 for all dotfiles (except .htaccess)
 RewriteRule ^\.((?!htaccess).)+$ - [R=404,L]
