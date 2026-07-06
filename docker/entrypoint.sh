@@ -7,7 +7,7 @@ chmod 600 /etc/msmtprc
 chown www-data:www-data /etc/msmtprc
 
 # Configure PHP to use MSMTP as sendmail
-echo "sendmail_path = /usr/sbin/msmtp -t" > /usr/local/etc/php/conf.d/msmtp.ini
+echo "sendmail_path = $(which msmtp) -t" > /usr/local/etc/php/conf.d/msmtp.ini
 
 # Create log file
 touch /var/log/msmtp.log
