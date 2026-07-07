@@ -102,7 +102,7 @@ class Auth
     public static function requireLogin()
     {
         if (!self::isLoggedIn()) {
-            header('Location: index.php?toast=error&message=' . urlencode(Locale::get('login_required')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?toast=error&message=' . urlencode(Locale::get('login_required')));
             exit;
         }
     }
@@ -111,7 +111,7 @@ class Auth
     {
         self::requireLogin();
         if (!self::isAdmin()) {
-            header('Location: index.php?toast=error&message=' . urlencode(Locale::get('admin_required')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?toast=error&message=' . urlencode(Locale::get('admin_required')));
             exit;
         }
     }
@@ -120,7 +120,7 @@ class Auth
     {
         self::requireLogin();
         if (!self::isSuperAdmin()) {
-            header('Location: index.php?toast=error&message=' . urlencode(Locale::get('admin_required')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?toast=error&message=' . urlencode(Locale::get('admin_required')));
             exit;
         }
     }

@@ -13,7 +13,7 @@
         </div>
     </div>
 
-    <form method="GET" action="index.php" class="mb-4">
+    <form method="GET" action="<?= $basePath ?>/" class="mb-4">
         <input type="hidden" name="action" value="payments">
         <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2">
             <div>
@@ -44,7 +44,7 @@
                 <input type="month" id="filter_month" name="month" value="<?= htmlspecialchars($filters['month']) ?>" onchange="this.form.submit()" class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div class="flex items-end">
-                <a href="index.php?action=payments" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-1.5 px-3 rounded-lg transition text-sm text-center"><?= Locale::get('clear_filters') ?></a>
+                <a href="<?= $basePath ?>/?action=payments" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-1.5 px-3 rounded-lg transition text-sm text-center"><?= Locale::get('clear_filters') ?></a>
             </div>
         </div>
     </form>
@@ -111,8 +111,8 @@
             <div class="flex flex-wrap gap-2 mt-2 pt-2 border-t border-gray-100 mt-auto">
                 <?php if ($row['status'] === 'unverified'): ?>
                     <button onclick="openEditPaymentModal(<?= $row['id'] ?>)" class="bg-amber-400 hover:bg-amber-500 text-black font-medium py-1 px-3 rounded text-xs cursor-pointer"><?= Locale::get('edit') ?></button>
-                    <a href="index.php?action=verify&id=<?= $row['id'] ?>" class="bg-green-500 hover:bg-green-600 text-white font-medium py-1 px-3 rounded text-xs" onclick="return confirm('<?= Locale::get('are_you_sure') ?>')"><?= Locale::get('verify') ?></a>
-                    <a href="index.php?action=delete&id=<?= $row['id'] ?>" class="bg-red-500 hover:bg-red-600 text-white font-medium py-1 px-3 rounded text-xs" onclick="return confirm('<?= Locale::get('are_you_sure') ?>')"><?= Locale::get('delete') ?></a>
+                    <a href="<?= $basePath ?>/?action=verify&id=<?= $row['id'] ?>" class="bg-green-500 hover:bg-green-600 text-white font-medium py-1 px-3 rounded text-xs" onclick="return confirm('<?= Locale::get('are_you_sure') ?>')"><?= Locale::get('verify') ?></a>
+                    <a href="<?= $basePath ?>/?action=delete&id=<?= $row['id'] ?>" class="bg-red-500 hover:bg-red-600 text-white font-medium py-1 px-3 rounded text-xs" onclick="return confirm('<?= Locale::get('are_you_sure') ?>')"><?= Locale::get('delete') ?></a>
                 <?php else: ?>
                     <span class="text-gray-400 text-xs"><?= Locale::get('verified') ?></span>
                 <?php endif; ?>

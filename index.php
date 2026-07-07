@@ -28,7 +28,7 @@ $id = $_GET['id'] ?? null;
 if ($action === 'login') {
     $rateCheck = Auth::checkRateLimit($_SERVER['REMOTE_ADDR']);
     if (!$rateCheck['allowed']) {
-        header('Location: index.php?toast=error&message=' . urlencode($rateCheck['message']));
+        header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?toast=error&message=' . urlencode($rateCheck['message']));
         exit;
     }
     
@@ -43,13 +43,13 @@ if ($action === 'login') {
         if (User::isDefaultPassword($userData['password'])) {
             $_SESSION['show_password_change'] = true;
         }
-        header('Location: index.php?toast=success&message=' . urlencode(Locale::get('login_success')));
+        header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?toast=success&message=' . urlencode(Locale::get('login_success')));
         exit;
     }
     
     Auth::recordFailedAttempt();
     ActivityLog::log('login_failed', null, $_POST['username'] ?? 'unknown');
-    header('Location: index.php?toast=error&message=' . urlencode(Locale::get('login_failed')));
+    header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?toast=error&message=' . urlencode(Locale::get('login_failed')));
     exit;
 }
 
@@ -59,7 +59,7 @@ if ($action === 'logout') {
     $userName = Auth::getUserName();
     Auth::logout();
     ActivityLog::log('user_logout', null, null, null, null, $userId, $userName);
-    header('Location: index.php?toast=success&message=' . urlencode(Locale::get('logout_success')));
+    header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?toast=success&message=' . urlencode(Locale::get('logout_success')));
     exit;
 }
 
@@ -81,7 +81,7 @@ if ($action === 'change_password') {
     if (!Auth::validateCsrf()) {
         ActivityLog::log('csrf_validation_failed', Auth::getUserId(), Auth::getUserName(), 
             ['action' => 'change_password']);
-        header('Location: index.php?toast=error&message=' . urlencode(Locale::get('invalid_request')));
+        header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?toast=error&message=' . urlencode(Locale::get('invalid_request')));
         exit;
     }
     
@@ -93,7 +93,7 @@ if ($action === 'change_password') {
     
     if (!$isForced) {
         if (!$userData || !password_verify($_POST['current_password'], $userData['password'])) {
-            header('Location: index.php?toast=error&message=' . urlencode(Locale::get('current_password_incorrect')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?toast=error&message=' . urlencode(Locale::get('current_password_incorrect')));
             exit;
         }
     }
@@ -101,17 +101,17 @@ if ($action === 'change_password') {
     // Validate password complexity
     $newPassword = $_POST['new_password'] ?? '';
     if (strlen($newPassword) < 8) {
-        header('Location: index.php?toast=error&message=' . urlencode(Locale::get('password_too_short')));
+        header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?toast=error&message=' . urlencode(Locale::get('password_too_short')));
         exit;
     }
     
     if ($user->changePassword($userId, $newPassword)) {
         unset($_SESSION['show_password_change']);
         ActivityLog::log('password_changed', $userId);
-        header('Location: index.php?toast=success&message=' . urlencode(Locale::get('password_changed_successfully')));
+        header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?toast=success&message=' . urlencode(Locale::get('password_changed_successfully')));
         exit;
     }
-    header('Location: index.php?toast=error&message=' . urlencode(Locale::get('error_changing_password')));
+    header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?toast=error&message=' . urlencode(Locale::get('error_changing_password')));
     exit;
 }
 
@@ -121,7 +121,7 @@ if ($action === 'update_profile') {
     if (!Auth::validateCsrf()) {
         ActivityLog::log('csrf_validation_failed', Auth::getUserId(), Auth::getUserName(), 
             ['action' => 'update_profile']);
-        header('Location: index.php?toast=error&message=' . urlencode(Locale::get('invalid_request')));
+        header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?toast=error&message=' . urlencode(Locale::get('invalid_request')));
         exit;
     }
     $controller = new UserController();
@@ -140,7 +140,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !in_array($action, ['login', 'logou
     if (!Auth::validateCsrf()) {
         ActivityLog::log('csrf_validation_failed', Auth::getUserId(), Auth::getUserName(), 
             ['action' => $action, 'module' => $module]);
-        header('Location: index.php?toast=error&message=' . urlencode(Locale::get('invalid_request')));
+        header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?toast=error&message=' . urlencode(Locale::get('invalid_request')));
         exit;
     }
 }
@@ -224,7 +224,7 @@ if ($module === 'user') {
             $controller->delete($id);
             break;
         default:
-            header('Location: index.php?module=activity');
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=activity');
             exit;
     }
 } elseif ($module === 'log') {

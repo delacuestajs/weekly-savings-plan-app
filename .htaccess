@@ -6,10 +6,8 @@ php_value max_input_time 600
 
 RewriteEngine On
 
-# --- Hide index.php from URLs ---
-RewriteCond %{REQUEST_URI} ^/index\.php$ [NC]
-RewriteCond %{QUERY_STRING} ^(.+)$
-RewriteRule ^index\.php$ /?%1 [R=301,L]
+# --- Route all non-file requests to index.php (no redirect) ---
+FallbackResource /index.php
 
 # --- Block sensitive directories (return 404) ---
 RewriteRule ^(config|controllers|models|views|lang|handlers|helpers|database|caddy|docker|app-icons|secrets|local|\.git)/ - [R=404,L]

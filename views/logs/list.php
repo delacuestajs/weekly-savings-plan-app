@@ -46,7 +46,7 @@
             <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-1.5 px-3 rounded-lg transition text-sm">
                 <?= Locale::get('filter') ?>
             </button>
-            <a href="index.php?module=log" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-1.5 px-3 rounded-lg transition text-sm">
+            <a href="<?= $basePath ?>/?module=log" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-1.5 px-3 rounded-lg transition text-sm">
                 <?= Locale::get('clear_filters') ?>
             </a>
         </div>

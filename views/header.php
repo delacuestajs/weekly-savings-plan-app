@@ -30,9 +30,9 @@ if (Auth::isLoggedIn() && Auth::getBagId()) {
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="Savings">
-    <link rel="manifest" href="<?= $basePath ?>/manifest.json">
-    <link rel="icon" type="image/svg+xml" href="<?= $basePath ?>/uploads/icon.svg">
-    <link rel="apple-touch-icon" href="<?= $basePath ?>/uploads/icon-180.png">
+    <link rel="manifest" href="<?= $basePath ?>/manifest.json?v=<?= $appConfig['app_version'] ?>">
+    <link rel="icon" type="image/svg+xml" href="<?= $basePath ?>/uploads/icon.svg?v=<?= $appConfig['app_version'] ?>">
+    <link rel="apple-touch-icon" href="<?= $basePath ?>/uploads/icon-180.png?v=<?= $appConfig['app_version'] ?>">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100">
@@ -99,39 +99,39 @@ if (Auth::isLoggedIn() && Auth::getBagId()) {
                         <div id="mobileMenu" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl z-50 py-2 border border-gray-100">
                             <!-- Navigation Section -->
                             <?php if (Auth::isAdmin()): ?>
-                            <a href="index.php?module=dashboard" class="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                            <a href="<?= $basePath ?>/?module=dashboard" class="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
                                 <span class="w-7 h-7 rounded-lg bg-gray-700 flex items-center justify-center text-white">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path></svg>
                                 </span>
                                 <?= Locale::get('dashboard') ?>
                             </a>
                             <?php endif; ?>
-                            <a href="index.php?action=weekly" class="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                            <a href="<?= $basePath ?>/?module=saving&action=weekly" class="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
                                 <span class="w-7 h-7 rounded-lg bg-teal-500 flex items-center justify-center text-white">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                 </span>
                                 <?= Locale::get('weekly_plan') ?>
                             </a>
-                            <a href="index.php?action=payments" class="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                            <a href="<?= $basePath ?>/?module=saving&action=payments" class="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
                                 <span class="w-7 h-7 rounded-lg bg-blue-500 flex items-center justify-center text-white">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                                 </span>
                                 <?= Locale::get('payments') ?>
                             </a>
                             <?php if (Auth::isAdmin()): ?>
-                            <a href="index.php?module=user" class="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                            <a href="<?= $basePath ?>/?module=user" class="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
                                 <span class="w-7 h-7 rounded-lg bg-purple-500 flex items-center justify-center text-white">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                                 </span>
                                 <?= Locale::get('users') ?>
                             </a>
-                            <a href="index.php?module=activity" class="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                            <a href="<?= $basePath ?>/?module=activity" class="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
                                 <span class="w-7 h-7 rounded-lg bg-orange-500 flex items-center justify-center text-white">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
                                 </span>
                                 <?= Locale::get('activities') ?>
                             </a>
-                            <a href="index.php?module=log" class="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                            <a href="<?= $basePath ?>/?module=log" class="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
                                 <span class="w-7 h-7 rounded-lg bg-gray-500 flex items-center justify-center text-white">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                 </span>
@@ -143,7 +143,7 @@ if (Auth::isLoggedIn() && Auth::getBagId()) {
                             <!-- Superadmin Section -->
                             <div class="border-t border-gray-100 my-1"></div>
                             <div class="px-3 py-1 text-[10px] font-semibold text-pink-600 uppercase bg-pink-50"><?= Locale::get('role_superadmin') ?></div>
-                            <a href="index.php?module=bag" class="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                            <a href="<?= $basePath ?>/?module=bag" class="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
                                 <span class="w-7 h-7 rounded-lg bg-pink-500 flex items-center justify-center text-white">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                                 </span>
@@ -171,7 +171,7 @@ if (Auth::isLoggedIn() && Auth::getBagId()) {
                                 </span>
                                 <?= Locale::get('change_password') ?>
                             </button>
-                            <a href="index.php?action=logout" class="flex items-center gap-3 px-3 py-2.5 text-sm text-red-600 hover:bg-red-50">
+                            <a href="<?= $basePath ?>/?action=logout" class="flex items-center gap-3 px-3 py-2.5 text-sm text-red-600 hover:bg-red-50">
                                 <span class="w-7 h-7 rounded-lg bg-red-500 flex items-center justify-center text-white">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                                 </span>
@@ -186,24 +186,24 @@ if (Auth::isLoggedIn() && Auth::getBagId()) {
                     <!-- Navigation Icons -->
                     <div class="flex items-center gap-1">
                         <?php if (Auth::isAdmin()): ?>
-                        <a href="index.php?module=dashboard" class="bg-gray-700 hover:bg-gray-800 text-white p-2 rounded-lg transition" title="<?= Locale::get('dashboard') ?>">
+                        <a href="<?= $basePath ?>/?module=dashboard" class="bg-gray-700 hover:bg-gray-800 text-white p-2 rounded-lg transition" title="<?= Locale::get('dashboard') ?>">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path></svg>
                         </a>
                         <?php endif; ?>
-                        <a href="index.php?action=weekly" class="bg-teal-500 hover:bg-teal-600 text-white p-2 rounded-lg transition" title="<?= Locale::get('weekly_plan') ?>">
+                        <a href="<?= $basePath ?>/?module=saving&action=weekly" class="bg-teal-500 hover:bg-teal-600 text-white p-2 rounded-lg transition" title="<?= Locale::get('weekly_plan') ?>">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                         </a>
-                        <a href="index.php?action=payments" class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg transition" title="<?= Locale::get('payments') ?>">
+                        <a href="<?= $basePath ?>/?module=saving&action=payments" class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg transition" title="<?= Locale::get('payments') ?>">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                         </a>
                         <?php if (Auth::isAdmin()): ?>
-                        <a href="index.php?module=user" class="bg-purple-500 hover:bg-purple-600 text-white p-2 rounded-lg transition" title="<?= Locale::get('users') ?>">
+                        <a href="<?= $basePath ?>/?module=user" class="bg-purple-500 hover:bg-purple-600 text-white p-2 rounded-lg transition" title="<?= Locale::get('users') ?>">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                         </a>
-                        <a href="index.php?module=activity" class="bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-lg transition" title="<?= Locale::get('activities') ?>">
+                        <a href="<?= $basePath ?>/?module=activity" class="bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-lg transition" title="<?= Locale::get('activities') ?>">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
                         </a>
-                        <a href="index.php?module=log" class="bg-gray-500 hover:bg-gray-600 text-white p-2 rounded-lg transition" title="<?= Locale::get('activity_logs') ?>">
+                        <a href="<?= $basePath ?>/?module=log" class="bg-gray-500 hover:bg-gray-600 text-white p-2 rounded-lg transition" title="<?= Locale::get('activity_logs') ?>">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </a>
                         <?php endif; ?>
@@ -213,7 +213,7 @@ if (Auth::isLoggedIn() && Auth::getBagId()) {
                     <!-- Superadmin Section -->
                     <div class="w-px h-6 bg-gray-200"></div>
                     <div class="flex items-center gap-1">
-                        <a href="index.php?module=bag" class="bg-pink-500 hover:bg-pink-600 text-white p-2 rounded-lg transition" title="<?= Locale::get('groups') ?>">
+                        <a href="<?= $basePath ?>/?module=bag" class="bg-pink-500 hover:bg-pink-600 text-white p-2 rounded-lg transition" title="<?= Locale::get('groups') ?>">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                         </a>
                     </div>
@@ -270,7 +270,7 @@ if (Auth::isLoggedIn() && Auth::getBagId()) {
                                     <?= Locale::get('change_password') ?>
                                 </button>
                                 <div class="border-t border-gray-100 my-1"></div>
-                                <a href="index.php?action=logout" class="flex items-center gap-3 px-3 py-2.5 text-sm text-red-600 hover:bg-red-50">
+                                <a href="<?= $basePath ?>/?action=logout" class="flex items-center gap-3 px-3 py-2.5 text-sm text-red-600 hover:bg-red-50">
                                     <span class="w-7 h-7 rounded-lg bg-red-500 flex items-center justify-center text-white">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                                     </span>
@@ -350,7 +350,7 @@ if (Auth::isLoggedIn() && Auth::getBagId()) {
                 </button>
             </div>
             
-            <form action="index.php?action=change_password" method="POST" onsubmit="return validatePasswordChange()">
+            <form action="<?= $basePath ?>/?action=change_password" method="POST" onsubmit="return validatePasswordChange()">
                 <input type="hidden" id="is_forced_change" name="is_forced_change" value="0">
                 <?= Auth::csrfField() ?>
                 
@@ -410,7 +410,7 @@ if (Auth::isLoggedIn() && Auth::getBagId()) {
                 </button>
             </div>
             
-            <form action="index.php?action=update_profile" method="POST" enctype="multipart/form-data">
+            <form action="<?= $basePath ?>/?action=update_profile" method="POST" enctype="multipart/form-data">
                 <?= Auth::csrfField() ?>
                 
                 <!-- Profile Picture -->
@@ -480,7 +480,7 @@ if (Auth::isLoggedIn() && Auth::getBagId()) {
                 </button>
             </div>
             
-            <form id="createPaymentForm" action="index.php?action=store" method="POST" enctype="multipart/form-data" novalidate>
+            <form id="createPaymentForm" action="<?= $basePath ?>/?action=store" method="POST" enctype="multipart/form-data" novalidate>
                 <?= Auth::csrfField() ?>
                 <div class="mb-4">
                     <label for="modal_user_id" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('user') ?> *</label>
@@ -718,7 +718,7 @@ if (Auth::isLoggedIn() && Auth::getBagId()) {
 
 <script>
 function switchLanguage(lang) {
-    window.location.href = 'index.php?lang=' + lang;
+    window.location.href = '<?= $basePath ?>/?lang=' + lang;
 }
 
 function closeCredentialsModal() {
@@ -887,9 +887,9 @@ function openExpenseModal(activityId, expenseId) {
     
     if (expenseId) {
         title.textContent = '<?= Locale::get('edit_expense') ?>';
-        form.action = 'index.php?module=expense&action=update&id=' + expenseId;
+        form.action = '<?= $basePath ?>/?module=expense&action=update&id=' + expenseId;
         // Fetch expense data via AJAX
-        fetch('index.php?module=expense&action=get_json&id=' + expenseId)
+        fetch('<?= $basePath ?>/?module=expense&action=get_json&id=' + expenseId)
             .then(response => response.json())
             .then(data => {
                 if (!data.error) {
@@ -899,7 +899,7 @@ function openExpenseModal(activityId, expenseId) {
             });
     } else {
         title.textContent = '<?= Locale::get('add_expense') ?>';
-        form.action = 'index.php?module=expense&action=store';
+        form.action = '<?= $basePath ?>/?module=expense&action=store';
     }
     
     modal.classList.remove('hidden');
@@ -1020,7 +1020,7 @@ if (createPaymentForm) {
 
 function openEditPaymentModal(savingId) {
     // Fetch saving data via AJAX
-    fetch('index.php?action=get_json&id=' + savingId)
+    fetch('<?= $basePath ?>/?action=get_json&id=' + savingId)
         .then(response => response.json())
         .then(data => {
             if (data.error) {
@@ -1029,7 +1029,7 @@ function openEditPaymentModal(savingId) {
             }
             
             // Set form action
-            document.getElementById('editPaymentForm').action = 'index.php?action=update&id=' + savingId;
+            document.getElementById('editPaymentForm').action = '<?= $basePath ?>/?action=update&id=' + savingId;
             
             // Populate form fields
             document.getElementById('edit_user_id').value = data.user_id || '';
@@ -1130,7 +1130,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 // --- PWA: Service Worker ---
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('<?= $basePath ?>/sw.js').catch(function() {});
+    navigator.serviceWorker.register('<?= $basePath ?>/sw.js?v=<?= $appConfig['app_version'] ?>').catch(function() {});
 }
 
 // --- PWA: Back button logout confirmation ---
@@ -1183,9 +1183,9 @@ if ('serviceWorker' in navigator) {
         document.getElementById('pwaLogoutConfirm').addEventListener('click', function() {
             overlay.innerHTML = '<div class="bg-white rounded-xl shadow-xl p-8 mx-4 max-w-sm w-full text-center">' +
                 '<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div></div>';
-            fetch('index.php?action=session_pwa_logout', { method: 'GET', keepalive: true })
-                .then(function() { window.location.replace('index.php'); })
-                .catch(function() { window.location.replace('index.php'); });
+            fetch('<?= $basePath ?>/?action=session_pwa_logout', { method: 'GET', keepalive: true })
+                .then(function() { window.location.replace('<?= $basePath ?>/'); })
+                .catch(function() { window.location.replace('<?= $basePath ?>/'); });
         });
     });
 })();

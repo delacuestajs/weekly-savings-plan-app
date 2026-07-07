@@ -32,9 +32,9 @@ function translatedDate($dateStr) {
             <!-- Year Navigation -->
             <div class="bg-white rounded-lg shadow-sm p-4">
                 <div class="flex items-center justify-between mb-3">
-                    <a href="index.php?action=weekly&year=<?= $data['year'] - 1 ?>&user_id=<?= $data['user_id'] ?? '' ?>" class="p-1 hover:bg-gray-100 rounded transition">&larr;</a>
+                    <a href="<?= $basePath ?>/?action=weekly&year=<?= $data['year'] - 1 ?>&user_id=<?= $data['user_id'] ?? '' ?>" class="p-1 hover:bg-gray-100 rounded transition">&larr;</a>
                     <span class="text-lg font-bold text-gray-800"><?= $data['year'] ?></span>
-                    <a href="index.php?action=weekly&year=<?= $data['year'] + 1 ?>&user_id=<?= $data['user_id'] ?? '' ?>" class="p-1 hover:bg-gray-100 rounded transition">&rarr;</a>
+                    <a href="<?= $basePath ?>/?action=weekly&year=<?= $data['year'] + 1 ?>&user_id=<?= $data['user_id'] ?? '' ?>" class="p-1 hover:bg-gray-100 rounded transition">&rarr;</a>
                 </div>
                 <?php if (Auth::isAdmin()): ?>
                 <select id="user_filter_desktop" onchange="filterByUser(this)" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -127,7 +127,7 @@ function translatedDate($dateStr) {
                 <div class="space-y-2">
                     <?php foreach ($data['users_multipliers'] as $u): ?>
                         <?php $m = max(1, (int)$u['multiplier']); ?>
-                        <a href="index.php?action=weekly&year=<?= $data['year'] ?>&user_id=<?= $u['id'] ?>" class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition">
+                        <a href="<?= $basePath ?>/?action=weekly&year=<?= $data['year'] ?>&user_id=<?= $u['id'] ?>" class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition">
                             <span class="text-sm font-medium text-gray-700"><?= htmlspecialchars($u['firstname'] . ' ' . $u['lastname']) ?></span>
                             <span class="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full">&times;<?= $m ?></span>
                         </a>
@@ -144,7 +144,7 @@ function translatedDate($dateStr) {
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                         <?= Locale::get('add_new_saving') ?>
                     </button>
-                    <a href="index.php?action=payments" class="flex items-center gap-2 p-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition text-sm">
+                    <a href="<?= $basePath ?>/?action=payments" class="flex items-center gap-2 p-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition text-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
                         <?= Locale::get('payments') ?>
                     </a>
@@ -160,8 +160,8 @@ function translatedDate($dateStr) {
             <div class="flex items-center justify-between mb-3">
                 <h1 class="text-xl font-bold text-gray-800"><?= Locale::get('weekly_savings_plan') ?> <?= $data['year'] ?></h1>
                 <div class="flex items-center gap-1">
-                    <a href="index.php?action=weekly&year=<?= $data['year'] - 1 ?>&user_id=<?= $data['user_id'] ?? '' ?>" class="p-2 hover:bg-gray-100 rounded-lg transition">&larr;</a>
-                    <a href="index.php?action=weekly&year=<?= $data['year'] + 1 ?>&user_id=<?= $data['user_id'] ?? '' ?>" class="p-2 hover:bg-gray-100 rounded-lg transition">&rarr;</a>
+                    <a href="<?= $basePath ?>/?action=weekly&year=<?= $data['year'] - 1 ?>&user_id=<?= $data['user_id'] ?? '' ?>" class="p-2 hover:bg-gray-100 rounded-lg transition">&larr;</a>
+                    <a href="<?= $basePath ?>/?action=weekly&year=<?= $data['year'] + 1 ?>&user_id=<?= $data['user_id'] ?? '' ?>" class="p-2 hover:bg-gray-100 rounded-lg transition">&rarr;</a>
                 </div>
             </div>
             <?php if (Auth::isAdmin()): ?>
@@ -456,7 +456,7 @@ function translatedDate($dateStr) {
             <?php if (Auth::isAdmin()): ?>
             <div class="bg-white rounded-lg shadow-sm p-4">
                 <h3 class="text-sm font-semibold text-gray-500 uppercase mb-3"><?= Locale::get('activity_logs') ?></h3>
-                <a href="index.php?module=log" class="text-xs text-blue-500 hover:underline"><?= Locale::get('view') ?> &rarr;</a>
+                <a href="<?= $basePath ?>/?module=log" class="text-xs text-blue-500 hover:underline"><?= Locale::get('view') ?> &rarr;</a>
             </div>
             <?php endif; ?>
         </div>
@@ -467,7 +467,7 @@ function translatedDate($dateStr) {
 function filterByUser(select) {
     var userId = select.value;
     var year = <?= $data['year'] ?>;
-    var url = 'index.php?action=weekly&year=' + year;
+    var url = '<?= $basePath ?>/?module=saving&action=weekly&year=' + year;
     if (userId) {
         url += '&user_id=' + userId;
     }

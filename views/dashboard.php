@@ -55,7 +55,7 @@ $pendingWeeks = $weeklyData['pending_weeks'];
                 </div>
             </div>
         </div>
-        <a href="index.php?action=weekly" class="block bg-gray-50 px-3 md:px-4 py-2 text-sm text-teal-500 hover:underline font-medium border-t border-gray-100"><?= Locale::get('view') ?> &rarr;</a>
+        <a href="<?= $basePath ?>/?action=weekly" class="block bg-gray-50 px-3 md:px-4 py-2 text-sm text-teal-500 hover:underline font-medium border-t border-gray-100"><?= Locale::get('view') ?> &rarr;</a>
     </div>
 
     <!-- Payments Summary -->
@@ -91,7 +91,7 @@ $pendingWeeks = $weeklyData['pending_weeks'];
                 </div>
             </div>
         </div>
-        <a href="index.php?action=payments" class="block bg-gray-50 px-3 md:px-4 py-2 text-sm text-blue-500 hover:underline font-medium border-t border-gray-100"><?= Locale::get('view') ?> &rarr;</a>
+        <a href="<?= $basePath ?>/?action=payments" class="block bg-gray-50 px-3 md:px-4 py-2 text-sm text-blue-500 hover:underline font-medium border-t border-gray-100"><?= Locale::get('view') ?> &rarr;</a>
     </div>
 
     <!-- Users Summary -->
@@ -126,7 +126,7 @@ $pendingWeeks = $weeklyData['pending_weeks'];
                 </div>
             </div>
         </div>
-        <a href="index.php?module=user" class="block bg-gray-50 px-3 md:px-4 py-2 text-sm text-purple-500 hover:underline font-medium border-t border-gray-100"><?= Locale::get('view') ?> &rarr;</a>
+        <a href="<?= $basePath ?>/?module=user" class="block bg-gray-50 px-3 md:px-4 py-2 text-sm text-purple-500 hover:underline font-medium border-t border-gray-100"><?= Locale::get('view') ?> &rarr;</a>
     </div>
 
     <!-- Activities Summary -->
@@ -141,7 +141,7 @@ $pendingWeeks = $weeklyData['pending_weeks'];
             <p class="text-xl md:text-2xl font-bold text-gray-800">$<?= number_format($activitiesTotal, 0) ?></p>
             <p class="text-sm text-gray-500"><?= $activitiesCount ?> <?= Locale::get('activities') ?></p>
         </div>
-        <a href="index.php?module=activity" class="block bg-gray-50 px-3 md:px-4 py-2 text-sm text-orange-500 hover:underline font-medium border-t border-gray-100"><?= Locale::get('view') ?> &rarr;</a>
+        <a href="<?= $basePath ?>/?module=activity" class="block bg-gray-50 px-3 md:px-4 py-2 text-sm text-orange-500 hover:underline font-medium border-t border-gray-100"><?= Locale::get('view') ?> &rarr;</a>
     </div>
 </div>
 

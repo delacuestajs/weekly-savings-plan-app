@@ -14,7 +14,7 @@ class BagController
 
     private function getReturnUrl()
     {
-        return $_GET['return'] ?? $_POST['return'] ?? 'index.php?module=bag';
+        return $_GET['return'] ?? $_POST['return'] ?? ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=bag';
     }
 
     public function index()
@@ -49,12 +49,12 @@ class BagController
         $this->bag->fixed_amount = !empty($_POST['fixed_amount']) ? (float)$_POST['fixed_amount'] : (getenv('DEFAULT_FIXED_AMOUNT') ?: 50000);
 
         if (!Bag::isValidName($this->bag->name)) {
-            header('Location: index.php?module=bag&action=create&toast=error&message=' . urlencode(Locale::get('group_name_invalid')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=bag&action=create&toast=error&message=' . urlencode(Locale::get('group_name_invalid')));
             exit;
         }
 
         if ($this->bag->isNameTaken($this->bag->name)) {
-            header('Location: index.php?module=bag&action=create&toast=error&message=' . urlencode(Locale::get('bag_name_taken')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=bag&action=create&toast=error&message=' . urlencode(Locale::get('bag_name_taken')));
             exit;
         }
 
@@ -63,7 +63,7 @@ class BagController
         if (isset($_FILES['picture']) && $_FILES['picture']['error'] === UPLOAD_ERR_OK) {
             $uploaded = $this->bag->uploadPicture($_FILES['picture']);
             if ($uploaded === false) {
-                header('Location: index.php?module=bag&action=create&toast=error&message=' . urlencode(Locale::get('invalid_file')));
+                header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=bag&action=create&toast=error&message=' . urlencode(Locale::get('invalid_file')));
                 exit;
             }
             $this->bag->picture = $uploaded;
@@ -80,7 +80,7 @@ class BagController
             header('Location: ' . $returnUrl . '&toast=success&message=' . urlencode(Locale::get('created_successfully')));
             exit;
         }
-        header('Location: index.php?module=bag&action=create&toast=error&message=' . urlencode(Locale::get('error_creating')));
+        header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=bag&action=create&toast=error&message=' . urlencode(Locale::get('error_creating')));
         exit;
     }
 
@@ -91,7 +91,7 @@ class BagController
 
         $existingBag = $this->bag->getByIdIncludingDeleted($id);
         if (!$existingBag) {
-            header('Location: index.php?module=bag&toast=error&message=' . urlencode(Locale::get('group_not_found')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=bag&toast=error&message=' . urlencode(Locale::get('group_not_found')));
             exit;
         }
 
@@ -103,20 +103,20 @@ class BagController
         $this->bag->fixed_amount = !empty($_POST['fixed_amount']) ? (float)$_POST['fixed_amount'] : (float)($existingBag['fixed_amount'] ?? 50000);
 
         if (!Bag::isValidName($this->bag->name)) {
-            header('Location: index.php?module=bag&action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('group_name_invalid')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=bag&action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('group_name_invalid')));
             exit;
         }
 
         // Prevent status change if bag has verified payments
         $newStatus = !empty($_POST['status']) ? (int)$_POST['status'] : 1;
         if ($this->hasVerifiedPayments($id) && $newStatus !== (int)$existingBag['status']) {
-            header('Location: index.php?module=bag&action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('bag_cannot_change_status')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=bag&action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('bag_cannot_change_status')));
             exit;
         }
         $this->bag->status = $newStatus;
 
         if ($this->bag->isNameTaken($this->bag->name, $id)) {
-            header('Location: index.php?module=bag&action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('bag_name_taken')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=bag&action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('bag_name_taken')));
             exit;
         }
 
@@ -207,7 +207,7 @@ class BagController
             header('Location: ' . $returnUrl . '&toast=success&message=' . urlencode(Locale::get('updated_successfully')));
             exit;
         }
-        header('Location: index.php?module=bag&action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('error_updating')));
+        header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=bag&action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('error_updating')));
         exit;
     }
 
@@ -217,17 +217,17 @@ class BagController
 
         $bag = $this->bag->getByIdIncludingDeleted($id);
         if (!$bag) {
-            header('Location: index.php?module=bag&toast=error&message=' . urlencode(Locale::get('bag_not_found')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=bag&toast=error&message=' . urlencode(Locale::get('bag_not_found')));
             exit;
         }
 
         if ($this->bag->delete($id)) {
             ActivityLog::log('bag_disabled', null, null,
                 ['bag_id' => $id, 'name' => $bag['name']]);
-            header('Location: index.php?module=bag&toast=success&message=' . urlencode(Locale::get('disabled_successfully')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=bag&toast=success&message=' . urlencode(Locale::get('disabled_successfully')));
             exit;
         }
-        header('Location: index.php?module=bag&toast=error&message=' . urlencode(Locale::get('error_disabling')));
+        header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=bag&toast=error&message=' . urlencode(Locale::get('error_disabling')));
         exit;
     }
 
@@ -237,7 +237,7 @@ class BagController
 
         $bag = $this->bag->getByIdIncludingDeleted($id);
         if (!$bag) {
-            header('Location: index.php?module=bag&toast=error&message=' . urlencode(Locale::get('group_not_found')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=bag&toast=error&message=' . urlencode(Locale::get('group_not_found')));
             exit;
         }
 
@@ -245,7 +245,7 @@ class BagController
         $allBags = $this->bag->getAllIncludingDeleted();
         $bagCount = $allBags->rowCount();
         if ($bagCount <= 1) {
-            header('Location: index.php?module=bag&toast=error&message=' . urlencode(Locale::get('cannot_truncate_last_group')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=bag&toast=error&message=' . urlencode(Locale::get('cannot_truncate_last_group')));
             exit;
         }
 
@@ -255,7 +255,7 @@ class BagController
         // Create dump file
         $dumpPath = $this->createDumpFile($id, $bag, $stats);
         if (!$dumpPath) {
-            header('Location: index.php?module=bag&toast=error&message=' . urlencode(Locale::get('error_creating_dump')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=bag&toast=error&message=' . urlencode(Locale::get('error_creating_dump')));
             exit;
         }
 
@@ -278,7 +278,7 @@ class BagController
         ];
 
         // Redirect to list with success message
-        header('Location: index.php?module=bag&toast=success&message=' . urlencode(Locale::get('bag_truncated_successfully')));
+        header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=bag&toast=success&message=' . urlencode(Locale::get('bag_truncated_successfully')));
         exit;
     }
 
@@ -488,7 +488,7 @@ class BagController
         Auth::requireSuperAdmin();
 
         if (!isset($_SESSION['bag_truncate_download'])) {
-            header('Location: index.php?module=bag&toast=error&message=' . urlencode(Locale::get('dump_not_found')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=bag&toast=error&message=' . urlencode(Locale::get('dump_not_found')));
             exit;
         }
 
@@ -499,7 +499,7 @@ class BagController
         $filename = $download['filename'];
 
         if (!file_exists($filepath)) {
-            header('Location: index.php?module=bag&toast=error&message=' . urlencode(Locale::get('dump_not_found')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=bag&toast=error&message=' . urlencode(Locale::get('dump_not_found')));
             exit;
         }
 

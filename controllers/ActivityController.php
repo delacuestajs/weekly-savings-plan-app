@@ -47,10 +47,10 @@ class ActivityController
         if ($this->activity->create()) {
             ActivityLog::log('activity_created', null, null,
                 ['activity_id' => $this->activity->id, 'name' => $this->activity->name, 'value' => $this->activity->value]);
-            header('Location: index.php?module=activity&toast=success&message=' . urlencode(Locale::get('activity_created_successfully')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=activity&toast=success&message=' . urlencode(Locale::get('activity_created_successfully')));
             exit;
         }
-        header('Location: index.php?module=activity&toast=error&message=' . urlencode(Locale::get('error_creating_activity')));
+        header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=activity&toast=error&message=' . urlencode(Locale::get('error_creating_activity')));
         exit;
     }
 
@@ -60,7 +60,7 @@ class ActivityController
 
         $existingActivity = $this->activity->getById($id);
         if (!$existingActivity) {
-            header('Location: index.php?module=activity&toast=error&message=' . urlencode(Locale::get('activity_not_found')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=activity&toast=error&message=' . urlencode(Locale::get('activity_not_found')));
             exit;
         }
 
@@ -89,10 +89,10 @@ class ActivityController
             ActivityLog::log('activity_updated', null, null,
                 ['activity_id' => $id, 'name' => $this->activity->name],
                 !empty($changes) ? $changes : null);
-            header('Location: index.php?module=activity&toast=success&message=' . urlencode(Locale::get('activity_updated_successfully')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=activity&toast=success&message=' . urlencode(Locale::get('activity_updated_successfully')));
             exit;
         }
-        header('Location: index.php?module=activity&toast=error&message=' . urlencode(Locale::get('error_updating_activity')));
+        header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=activity&toast=error&message=' . urlencode(Locale::get('error_updating_activity')));
         exit;
     }
 
@@ -102,17 +102,17 @@ class ActivityController
 
         $activity = $this->activity->getById($id);
         if (!$activity) {
-            header('Location: index.php?module=activity&toast=error&message=' . urlencode(Locale::get('activity_not_found')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=activity&toast=error&message=' . urlencode(Locale::get('activity_not_found')));
             exit;
         }
 
         if ($this->activity->delete($id)) {
             ActivityLog::log('activity_deleted', null, null,
                 ['activity_id' => $id, 'name' => $activity['name']]);
-            header('Location: index.php?module=activity&toast=success&message=' . urlencode(Locale::get('activity_deleted_successfully')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=activity&toast=success&message=' . urlencode(Locale::get('activity_deleted_successfully')));
             exit;
         }
-        header('Location: index.php?module=activity&toast=error&message=' . urlencode(Locale::get('error_deleting_activity')));
+        header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=activity&toast=error&message=' . urlencode(Locale::get('error_deleting_activity')));
         exit;
     }
 

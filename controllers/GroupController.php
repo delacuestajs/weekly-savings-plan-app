@@ -14,7 +14,7 @@ class GroupController
 
     private function getReturnUrl()
     {
-        return $_GET['return'] ?? $_POST['return'] ?? 'index.php?module=group';
+        return $_GET['return'] ?? $_POST['return'] ?? ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=group';
     }
 
     public function index()
@@ -40,7 +40,7 @@ class GroupController
         $this->group->status = !empty($_POST['status']) ? (int)$_POST['status'] : 1;
 
         if ($this->group->isNameTaken($this->group->name)) {
-            header('Location: index.php?module=group&action=create&toast=error&message=' . urlencode(Locale::get('group_name_taken')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=group&action=create&toast=error&message=' . urlencode(Locale::get('group_name_taken')));
             exit;
         }
 
@@ -50,7 +50,7 @@ class GroupController
             header('Location: ' . $returnUrl . '&toast=success&message=' . urlencode(Locale::get('created_successfully')));
             exit;
         }
-        header('Location: index.php?module=group&action=create&toast=error&message=' . urlencode(Locale::get('error_creating')));
+        header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=group&action=create&toast=error&message=' . urlencode(Locale::get('error_creating')));
         exit;
     }
 
@@ -59,7 +59,7 @@ class GroupController
         Auth::requireSuperAdmin();
         $group = $this->group->getById($id);
         if (!$group) {
-            header('Location: index.php?module=group&toast=error&message=' . urlencode(Locale::get('group_not_found')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=group&toast=error&message=' . urlencode(Locale::get('group_not_found')));
             exit;
         }
         require __DIR__ . '/../views/groups/edit.php';
@@ -72,7 +72,7 @@ class GroupController
 
         $existingGroup = $this->group->getById($id);
         if (!$existingGroup) {
-            header('Location: index.php?module=group&toast=error&message=' . urlencode(Locale::get('group_not_found')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=group&toast=error&message=' . urlencode(Locale::get('group_not_found')));
             exit;
         }
 
@@ -82,7 +82,7 @@ class GroupController
         $this->group->status = !empty($_POST['status']) ? (int)$_POST['status'] : 1;
 
         if ($this->group->isNameTaken($this->group->name, $id)) {
-            header('Location: index.php?module=group&action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('group_name_taken')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=group&action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('group_name_taken')));
             exit;
         }
 
@@ -105,7 +105,7 @@ class GroupController
             header('Location: ' . $returnUrl . '&toast=success&message=' . urlencode(Locale::get('updated_successfully')));
             exit;
         }
-        header('Location: index.php?module=group&action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('error_updating')));
+        header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=group&action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('error_updating')));
         exit;
     }
 
@@ -115,24 +115,24 @@ class GroupController
 
         $group = $this->group->getById($id);
         if (!$group) {
-            header('Location: index.php?module=group&toast=error&message=' . urlencode(Locale::get('group_not_found')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=group&toast=error&message=' . urlencode(Locale::get('group_not_found')));
             exit;
         }
 
         // Check if group has users
         $userCount = $this->group->getUsersByGroupId($id);
         if ($userCount > 0) {
-            header('Location: index.php?module=group&toast=error&message=' . urlencode(Locale::get('group_has_users')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=group&toast=error&message=' . urlencode(Locale::get('group_has_users')));
             exit;
         }
 
         if ($this->group->delete($id)) {
             ActivityLog::log('group_deleted', null, null,
                 ['group_id' => $id, 'name' => $group['name']]);
-            header('Location: index.php?module=group&toast=success&message=' . urlencode(Locale::get('deleted_successfully')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=group&toast=success&message=' . urlencode(Locale::get('deleted_successfully')));
             exit;
         }
-        header('Location: index.php?module=group&toast=error&message=' . urlencode(Locale::get('error_deleting')));
+        header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=group&toast=error&message=' . urlencode(Locale::get('error_deleting')));
         exit;
     }
 

@@ -3,7 +3,7 @@
 <div class="max-w-lg mx-auto bg-white rounded-lg shadow-sm p-3 md:p-4">
     <h1 class="text-xl md:text-2xl font-bold text-gray-800 mb-4"><?= Locale::get('edit_expense') ?></h1>
 
-    <form action="index.php?module=expense&action=update&id=<?= $expense['id'] ?>" method="POST">
+    <form action="<?= $basePath ?>/?module=expense&action=update&id=<?= $expense['id'] ?>" method="POST">
         <?= Auth::csrfField() ?>
         <div class="space-y-4">
             <div>
@@ -21,7 +21,7 @@
 
         <div class="flex flex-wrap gap-3 mt-6">
             <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-6 rounded-lg transition"><?= Locale::get('save') ?></button>
-            <a href="index.php?module=activity" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-6 rounded-lg transition"><?= Locale::get('cancel') ?></a>
+            <a href="<?= $basePath ?>/?module=activity" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-6 rounded-lg transition"><?= Locale::get('cancel') ?></a>
         </div>
     </form>
 </div>

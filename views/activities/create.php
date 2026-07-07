@@ -3,7 +3,7 @@
 <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-4 md:p-6">
     <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-6"><?= Locale::get('add_new_activity') ?></h1>
     
-    <form action="index.php?module=activity&action=store" method="POST" class="space-y-4">
+    <form action="<?= $basePath ?>/?module=activity&action=store" method="POST" class="space-y-4">
         <?= Auth::csrfField() ?>
         <div>
             <label for="name" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('name') ?> *</label>

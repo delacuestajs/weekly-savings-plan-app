@@ -20,9 +20,9 @@ class SavingController
         $this->weeklySaving = new WeeklySaving();
     }
 
-    private function getReturnUrl($default = 'index.php?action=payments')
+    private function getReturnUrl()
     {
-        return $_GET['return'] ?? $_POST['return'] ?? $default;
+        return $_GET['return'] ?? $_POST['return'] ?? ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?action=payments';
     }
 
     private function getUserName($userId)
@@ -89,7 +89,7 @@ class SavingController
         $returnUrl = $this->getReturnUrl();
         
         if (empty($_POST['user_id'])) {
-            header('Location: index.php?action=create&toast=error&message=' . urlencode(Locale::get('user_required')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?action=create&toast=error&message=' . urlencode(Locale::get('user_required')));
             exit;
         }
         
@@ -107,15 +107,15 @@ class SavingController
             if ($_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
                 $uploaded = $this->saving->uploadAttachment($_FILES['attachment']);
                 if ($uploaded === false) {
-                    header('Location: index.php?action=create&toast=error&message=' . urlencode(Locale::get('invalid_file')));
+                    header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?action=create&toast=error&message=' . urlencode(Locale::get('invalid_file')));
                     exit;
                 }
                 $this->saving->attachment = $uploaded;
             } elseif ($_FILES['attachment']['error'] === UPLOAD_ERR_INI_SIZE || $_FILES['attachment']['error'] === UPLOAD_ERR_FORM_SIZE) {
-                header('Location: index.php?action=create&toast=error&message=' . urlencode(Locale::get('file_too_large')));
+                header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?action=create&toast=error&message=' . urlencode(Locale::get('file_too_large')));
                 exit;
             } else {
-                header('Location: index.php?action=create&toast=error&message=' . urlencode(Locale::get('upload_error')));
+                header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?action=create&toast=error&message=' . urlencode(Locale::get('upload_error')));
                 exit;
             }
         }
@@ -131,7 +131,7 @@ class SavingController
             header('Location: ' . $returnUrl . '&toast=success&message=' . urlencode(Locale::get('created_successfully')));
             exit;
         }
-        header('Location: index.php?action=create&toast=error&message=' . urlencode(Locale::get('error_creating')));
+        header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?action=create&toast=error&message=' . urlencode(Locale::get('error_creating')));
         exit;
     }
 
@@ -140,7 +140,7 @@ class SavingController
         $saving = $this->saving->getById($id);
         
         if ($saving['status'] === 'verified') {
-            header('Location: index.php?action=payments&toast=error&message=' . urlencode(Locale::get('cannot_edit_verified')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?action=payments&toast=error&message=' . urlencode(Locale::get('cannot_edit_verified')));
             exit;
         }
         
@@ -186,15 +186,15 @@ class SavingController
 
                 $uploaded = $this->saving->uploadAttachment($_FILES['attachment']);
                 if ($uploaded === false) {
-                    header('Location: index.php?action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('invalid_file')));
+                    header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('invalid_file')));
                     exit;
                 }
                 $this->saving->attachment = $uploaded;
             } elseif ($_FILES['attachment']['error'] === UPLOAD_ERR_INI_SIZE || $_FILES['attachment']['error'] === UPLOAD_ERR_FORM_SIZE) {
-                header('Location: index.php?action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('file_too_large')));
+                header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('file_too_large')));
                 exit;
             } else {
-                header('Location: index.php?action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('upload_error')));
+                header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('upload_error')));
                 exit;
             }
         }
@@ -240,7 +240,7 @@ class SavingController
             header('Location: ' . $returnUrl . '&toast=success&message=' . urlencode(Locale::get('updated_successfully')));
             exit;
         }
-        header('Location: index.php?action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('error_updating')));
+        header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?action=edit&id=' . $id . '&toast=error&message=' . urlencode(Locale::get('error_updating')));
         exit;
     }
 
@@ -248,7 +248,7 @@ class SavingController
     {
         $saving = $this->saving->getById($id);
         if (!$saving) {
-            header('Location: index.php?action=payments&toast=error&message=' . urlencode(Locale::get('error_updating')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?action=payments&toast=error&message=' . urlencode(Locale::get('error_updating')));
             exit;
         }
         
@@ -270,10 +270,10 @@ class SavingController
             // Send email to payment owner
             $this->sendPaymentVerifiedEmail($saving['user_id'], $saving['amount'], $saving['payment_method'], $saving['description']);
 
-            header('Location: index.php?action=payments&toast=success&message=' . urlencode(Locale::get('payment_verified')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?action=payments&toast=success&message=' . urlencode(Locale::get('payment_verified')));
             exit;
         }
-        header('Location: index.php?action=payments&toast=error&message=' . urlencode(Locale::get('error_updating')));
+        header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?action=payments&toast=error&message=' . urlencode(Locale::get('error_updating')));
         exit;
     }
 
@@ -284,10 +284,10 @@ class SavingController
             $ownerName = $this->getUserName($saving['user_id'] ?? null);
             ActivityLog::log('saving_deleted', $saving['user_id'] ?? null, $ownerName, 
                 ['saving_id' => $id, 'amount' => $saving['amount'] ?? null]);
-            header('Location: index.php?action=payments&toast=success&message=' . urlencode(Locale::get('deleted_successfully')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?action=payments&toast=success&message=' . urlencode(Locale::get('deleted_successfully')));
             exit;
         }
-        header('Location: index.php?action=payments&toast=error&message=' . urlencode(Locale::get('error_deleting')));
+        header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?action=payments&toast=error&message=' . urlencode(Locale::get('error_deleting')));
         exit;
     }
 

@@ -10,7 +10,7 @@ if (isset($_SESSION['bag_truncate_download'])):
         <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
         <span class="text-sm text-green-800"><?= Locale::get('dump_created_successfully') ?>: <strong><?= htmlspecialchars($download['bag_name']) ?></strong></span>
     </div>
-    <a href="index.php?module=bag&action=download_dump" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition">
+    <a href="<?= $basePath ?>/?module=bag&action=download_dump" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition">
         <?= Locale::get('download_dump') ?>
     </a>
 </div>
@@ -85,7 +85,7 @@ if (isset($_SESSION['bag_truncate_download'])):
             <div class="flex flex-wrap gap-2 mt-2 pt-2 border-t border-gray-100 mt-auto">
                 <button onclick="openEditBagModal(<?= $bag['id'] ?>)" class="bg-amber-400 hover:bg-amber-500 text-black font-medium py-1 px-3 rounded text-xs"><?= Locale::get('edit') ?></button>
                 <?php if ($bag['status'] == 1 && !in_array($bag['id'], $bagsWithVerifiedPayments)): ?>
-                <a href="index.php?module=bag&action=disable&id=<?= $bag['id'] ?>" class="bg-orange-500 hover:bg-orange-600 text-white font-medium py-1 px-3 rounded text-xs" onclick="return confirm('<?= Locale::get('are_you_sure') ?>')"><?= Locale::get('disable') ?></a>
+                <a href="<?= $basePath ?>/?module=bag&action=disable&id=<?= $bag['id'] ?>" class="bg-orange-500 hover:bg-orange-600 text-white font-medium py-1 px-3 rounded text-xs" onclick="return confirm('<?= Locale::get('are_you_sure') ?>')"><?= Locale::get('disable') ?></a>
                 <?php endif; ?>
                 <button onclick="confirmTruncate(<?= $bag['id'] ?>, '<?= htmlspecialchars($bag['name'], ENT_QUOTES) ?>')" class="bg-red-600 hover:bg-red-700 text-white font-medium py-1 px-3 rounded text-xs"><?= Locale::get('truncate') ?></button>
             </div>
@@ -104,7 +104,7 @@ if (isset($_SESSION['bag_truncate_download'])):
             </button>
         </div>
         
-        <form id="createBagForm" action="index.php?module=bag&action=store" method="POST" enctype="multipart/form-data">
+        <form id="createBagForm" action="<?= $basePath ?>/?module=bag&action=store" method="POST" enctype="multipart/form-data">
             <?= Auth::csrfField() ?>
             
             <!-- Picture Upload -->
@@ -276,11 +276,11 @@ function previewCreatePicture(input) {
 }
 
 function openEditBagModal(bagId) {
-    document.getElementById('editBagForm').action = 'index.php?module=bag&action=update&id=' + bagId;
+    document.getElementById('editBagForm').action = '<?= $basePath ?>/?module=bag&action=update&id=' + bagId;
     document.getElementById('edit_bag_id').value = bagId;
     
     // Fetch bag data
-    fetch('index.php?module=bag&action=get_json&id=' + bagId)
+    fetch('<?= $basePath ?>/?module=bag&action=get_json&id=' + bagId)
         .then(function(response) {
             console.log('Response status:', response.status);
             console.log('Content-Type:', response.headers.get('content-type'));
@@ -289,7 +289,7 @@ function openEditBagModal(bagId) {
                 return response.json();
             }
             // If not JSON, session expired - redirect to login
-            window.location.href = 'index.php';
+            window.location.href = '<?= $basePath ?>/';
             throw new Error('Session expired');
         })
         .then(function(data) {
@@ -402,7 +402,7 @@ function confirmTruncate(bagId, bagName) {
     if (confirm(message)) {
         var secondConfirm = '<?= Locale::get('truncate_second_confirm') ?>';
         if (confirm(secondConfirm)) {
-            window.location.href = 'index.php?module=bag&action=truncate&id=' + bagId;
+            window.location.href = '<?= $basePath ?>/?module=bag&action=truncate&id=' + bagId;
         }
     }
 }

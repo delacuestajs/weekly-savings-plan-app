@@ -1,4 +1,4 @@
-const CACHE_NAME = 'savings-v1';
+const CACHE_NAME = 'savings-v2';
 const STATIC_ASSETS = [
   'index.php',
   'manifest.json',

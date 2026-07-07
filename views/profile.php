@@ -3,7 +3,7 @@
 <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-4 md:p-6">
     <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-6"><?= Locale::get('my_profile') ?></h1>
 
-    <form action="index.php?action=update_profile" method="POST">
+    <form action="<?= $basePath ?>/?action=update_profile" method="POST">
         <?= Auth::csrfField() ?>
         <div class="space-y-4">
             <div>
@@ -32,7 +32,7 @@
             <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-6 rounded-lg transition duration-200">
                 <?= Locale::get('save') ?>
             </button>
-            <a href="index.php" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-6 rounded-lg transition duration-200">
+            <a href="<?= $basePath ?>/" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-6 rounded-lg transition duration-200">
                 <?= Locale::get('cancel') ?>
             </a>
         </div>

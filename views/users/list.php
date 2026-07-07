@@ -91,7 +91,7 @@ $allBags = $bagModel->getAll()->fetchAll(PDO::FETCH_ASSOC);
             <div class="flex flex-wrap gap-2 mt-2 pt-2 border-t border-gray-100 mt-auto">
                 <button onclick="openUserEditModal(<?= $row['id'] ?>)" class="bg-amber-400 hover:bg-amber-500 text-black font-medium py-1 px-3 rounded text-xs"><?= Locale::get('edit') ?></button>
                 <?php if (!in_array($row['id'], $usersWithVerifiedPayments)): ?>
-                <a href="index.php?module=user&action=delete&id=<?= $row['id'] ?>" class="bg-red-500 hover:bg-red-600 text-white font-medium py-1 px-3 rounded text-xs" onclick="return confirm('<?= Locale::get('are_you_sure') ?>')"><?= Locale::get('delete') ?></a>
+                <a href="<?= $basePath ?>/?module=user&action=delete&id=<?= $row['id'] ?>" class="bg-red-500 hover:bg-red-600 text-white font-medium py-1 px-3 rounded text-xs" onclick="return confirm('<?= Locale::get('are_you_sure') ?>')"><?= Locale::get('delete') ?></a>
                 <?php endif; ?>
             </div>
             <?php endif; ?>
@@ -110,7 +110,7 @@ $allBags = $bagModel->getAll()->fetchAll(PDO::FETCH_ASSOC);
             </button>
         </div>
         
-        <form id="userCreateForm" action="index.php?module=user&action=store" method="POST" enctype="multipart/form-data">
+        <form id="userCreateForm" action="<?= $basePath ?>/?module=user&action=store" method="POST" enctype="multipart/form-data">
             <?= Auth::csrfField() ?>
             
             <!-- Picture Upload -->
@@ -367,16 +367,16 @@ function previewUserCreatePicture(input) {
 }
 
 function openUserEditModal(userId) {
-    document.getElementById('userEditForm').action = 'index.php?module=user&action=update&id=' + userId;
+    document.getElementById('userEditForm').action = '<?= $basePath ?>/?module=user&action=update&id=' + userId;
     document.getElementById('user_edit_id').value = userId;
     
-    fetch('index.php?module=user&action=get_json&id=' + userId)
+    fetch('<?= $basePath ?>/?module=user&action=get_json&id=' + userId)
         .then(function(response) {
             var contentType = response.headers.get('content-type');
             if (contentType && contentType.indexOf('application/json') !== -1) {
                 return response.json();
             }
-            window.location.href = 'index.php';
+            window.location.href = '<?= $basePath ?>/';
             throw new Error('Session expired');
         })
         .then(function(data) {
@@ -461,7 +461,7 @@ function previewUserEditPicture(input) {
 function resetUserPassword() {
     var userId = document.getElementById('user_edit_id').value;
     if (confirm('<?= Locale::get('are_you_sure') ?>')) {
-        window.location.href = 'index.php?module=user&action=reset_password&id=' + userId;
+        window.location.href = '<?= $basePath ?>/?module=user&action=reset_password&id=' + userId;
     }
 }
 

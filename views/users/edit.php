@@ -9,7 +9,7 @@ $bagsList = $bagModel->getAll()->fetchAll(PDO::FETCH_ASSOC);
 <div class="max-w-5xl mx-auto bg-white rounded-lg shadow-md p-4 md:p-6">
     <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-6"><?= Locale::get('edit_user') ?></h1>
 
-    <form action="index.php?module=user&action=update&id=<?= $user['id'] ?>&return=<?= urlencode($_SERVER['HTTP_REFERER'] ?? 'index.php?module=user') ?>" method="POST" enctype="multipart/form-data" class="max-w-lg">
+    <form action="<?= $basePath ?>/?module=user&action=update&id=<?= $user['id'] ?>&return=<?= urlencode($_SERVER['HTTP_REFERER'] ?? $basePath . '/?module=user') ?>" method="POST" enctype="multipart/form-data" class="max-w-lg">
         <?= Auth::csrfField() ?>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="mb-4">
@@ -71,7 +71,7 @@ $bagsList = $bagModel->getAll()->fetchAll(PDO::FETCH_ASSOC);
         </div>
 
         <div class="mb-4">
-            <a href="index.php?module=user&action=reset_password&id=<?= $user['id'] ?>" class="inline-flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-lg transition duration-200" onclick="return confirm('<?= Locale::get('are_you_sure') ?>')">
+            <a href="<?= $basePath ?>/?module=user&action=reset_password&id=<?= $user['id'] ?>" class="inline-flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-lg transition duration-200" onclick="return confirm('<?= Locale::get('are_you_sure') ?>')">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
                 <?= Locale::get('reset_password') ?>
             </a>

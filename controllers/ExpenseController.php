@@ -26,10 +26,10 @@ class ExpenseController
         if ($this->expense->create()) {
             ActivityLog::log('expense_created', null, null, 
                 ['activity_id' => $_POST['activity_id'], 'amount' => $_POST['amount'], 'description' => $_POST['description']]);
-            header('Location: index.php?module=activity&toast=success&message=' . urlencode(Locale::get('expense_created_successfully')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=activity&toast=success&message=' . urlencode(Locale::get('expense_created_successfully')));
             exit;
         }
-        header('Location: index.php?module=activity&toast=error&message=' . urlencode(Locale::get('error_creating_expense')));
+        header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=activity&toast=error&message=' . urlencode(Locale::get('error_creating_expense')));
         exit;
     }
 
@@ -55,12 +55,12 @@ class ExpenseController
 
         $expense = $this->expense->getById($id);
         if (!$expense) {
-            header('Location: index.php?module=activity&toast=error&message=' . urlencode(Locale::get('expense_not_found')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=activity&toast=error&message=' . urlencode(Locale::get('expense_not_found')));
             exit;
         }
 
         if ($expense['status'] === 'confirmed') {
-            header('Location: index.php?module=activity&toast=error&message=' . urlencode(Locale::get('cannot_edit_confirmed_expense')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=activity&toast=error&message=' . urlencode(Locale::get('cannot_edit_confirmed_expense')));
             exit;
         }
 
@@ -73,10 +73,10 @@ class ExpenseController
                 ['expense_id' => $id, 'amount' => $_POST['amount']], 
                 ['Description' => ['old' => $expense['description'], 'new' => $_POST['description']], 
                  'Amount' => ['old' => $expense['amount'], 'new' => $_POST['amount']]]);
-            header('Location: index.php?module=activity&toast=success&message=' . urlencode(Locale::get('expense_updated_successfully')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=activity&toast=success&message=' . urlencode(Locale::get('expense_updated_successfully')));
             exit;
         }
-        header('Location: index.php?module=activity&toast=error&message=' . urlencode(Locale::get('error_updating_expense')));
+        header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=activity&toast=error&message=' . urlencode(Locale::get('error_updating_expense')));
         exit;
     }
 
@@ -86,7 +86,7 @@ class ExpenseController
 
         $expense = $this->expense->getById($id);
         if (!$expense) {
-            header('Location: index.php?module=activity&toast=error&message=' . urlencode(Locale::get('expense_not_found')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=activity&toast=error&message=' . urlencode(Locale::get('expense_not_found')));
             exit;
         }
 
@@ -94,10 +94,10 @@ class ExpenseController
         if ($this->expense->confirm()) {
             ActivityLog::log('expense_confirmed', null, null, 
                 ['expense_id' => $id, 'amount' => $expense['amount'], 'description' => $expense['description']]);
-            header('Location: index.php?module=activity&toast=success&message=' . urlencode(Locale::get('expense_confirmed_successfully')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=activity&toast=success&message=' . urlencode(Locale::get('expense_confirmed_successfully')));
             exit;
         }
-        header('Location: index.php?module=activity&toast=error&message=' . urlencode(Locale::get('error_confirming_expense')));
+        header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=activity&toast=error&message=' . urlencode(Locale::get('error_confirming_expense')));
         exit;
     }
 
@@ -107,22 +107,22 @@ class ExpenseController
 
         $expense = $this->expense->getById($id);
         if (!$expense) {
-            header('Location: index.php?module=activity&toast=error&message=' . urlencode(Locale::get('expense_not_found')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=activity&toast=error&message=' . urlencode(Locale::get('expense_not_found')));
             exit;
         }
 
         if ($expense['status'] === 'confirmed') {
-            header('Location: index.php?module=activity&toast=error&message=' . urlencode(Locale::get('cannot_delete_confirmed_expense')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=activity&toast=error&message=' . urlencode(Locale::get('cannot_delete_confirmed_expense')));
             exit;
         }
 
         if ($this->expense->delete($id)) {
             ActivityLog::log('expense_deleted', null, null, 
                 ['expense_id' => $id, 'amount' => $expense['amount'], 'description' => $expense['description']]);
-            header('Location: index.php?module=activity&toast=success&message=' . urlencode(Locale::get('expense_deleted_successfully')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=activity&toast=success&message=' . urlencode(Locale::get('expense_deleted_successfully')));
             exit;
         }
-        header('Location: index.php?module=activity&toast=error&message=' . urlencode(Locale::get('error_deleting_expense')));
+        header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=activity&toast=error&message=' . urlencode(Locale::get('error_deleting_expense')));
         exit;
     }
 }

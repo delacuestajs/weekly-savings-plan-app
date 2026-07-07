@@ -3,7 +3,7 @@
 <div class="max-w-5xl mx-auto bg-white rounded-lg shadow-md p-4 md:p-6">
     <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-6"><?= Locale::get('add_new_group') ?></h1>
 
-    <form action="index.php?module=bag&action=store&return=<?= urlencode($_SERVER['HTTP_REFERER'] ?? 'index.php?module=bag') ?>" method="POST" enctype="multipart/form-data" class="max-w-lg">
+    <form action="<?= $basePath ?>/?module=bag&action=store&return=<?= urlencode($_SERVER['HTTP_REFERER'] ?? $basePath . '/?module=bag') ?>" method="POST" enctype="multipart/form-data" class="max-w-lg">
         <?= Auth::csrfField() ?>
         
         <!-- Picture Upload -->

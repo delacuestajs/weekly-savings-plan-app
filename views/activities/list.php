@@ -40,7 +40,7 @@
             <?php if (Auth::isAdmin()): ?>
             <div class="flex flex-wrap gap-2 mt-2 pt-2 border-t border-gray-200">
                 <button onclick="openEditActivityModal(<?= $row['id'] ?>)" class="bg-amber-400 hover:bg-amber-500 text-black font-medium py-1 px-3 rounded text-xs cursor-pointer"><?= Locale::get('edit') ?></button>
-                <a href="index.php?module=activity&action=delete&id=<?= $row['id'] ?>" class="bg-red-500 hover:bg-red-600 text-white font-medium py-1 px-3 rounded text-xs" onclick="return confirm('<?= Locale::get('are_you_sure') ?>')"><?= Locale::get('delete') ?></a>
+                <a href="<?= $basePath ?>/?module=activity&action=delete&id=<?= $row['id'] ?>" class="bg-red-500 hover:bg-red-600 text-white font-medium py-1 px-3 rounded text-xs" onclick="return confirm('<?= Locale::get('are_you_sure') ?>')"><?= Locale::get('delete') ?></a>
                 <button onclick="openExpenseModal(<?= $row['id'] ?>)" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-1 px-3 rounded text-xs cursor-pointer"><?= Locale::get('add_expense') ?></button>
             </div>
             <?php endif; ?>
@@ -67,8 +67,8 @@
                     <span class="text-xs font-medium text-red-600">-$<?= number_format($expense['amount'], 2) ?></span>
                     <?php if (Auth::isAdmin() && $expense['status'] === 'pending'): ?>
                         <button onclick="openExpenseModal(<?= $row['id'] ?>, <?= $expense['id'] ?>)" class="bg-amber-400 hover:bg-amber-500 text-black font-medium py-0.5 px-1.5 rounded text-[9px] cursor-pointer"><?= Locale::get('edit') ?></button>
-                        <a href="index.php?module=expense&action=confirm&id=<?= $expense['id'] ?>" class="bg-green-500 hover:bg-green-600 text-white font-medium py-0.5 px-1.5 rounded text-[9px]"><?= Locale::get('confirm') ?></a>
-                        <a href="index.php?module=expense&action=delete&id=<?= $expense['id'] ?>" class="bg-red-500 hover:bg-red-600 text-white font-medium py-0.5 px-1.5 rounded text-[9px]" onclick="return confirm('<?= Locale::get('are_you_sure') ?>')"><?= Locale::get('delete') ?></a>
+                        <a href="<?= $basePath ?>/?module=expense&action=confirm&id=<?= $expense['id'] ?>" class="bg-green-500 hover:bg-green-600 text-white font-medium py-0.5 px-1.5 rounded text-[9px]"><?= Locale::get('confirm') ?></a>
+                        <a href="<?= $basePath ?>/?module=expense&action=delete&id=<?= $expense['id'] ?>" class="bg-red-500 hover:bg-red-600 text-white font-medium py-0.5 px-1.5 rounded text-[9px]" onclick="return confirm('<?= Locale::get('are_you_sure') ?>')"><?= Locale::get('delete') ?></a>
                     <?php endif; ?>
                 </div>
             </div>
@@ -96,7 +96,7 @@
             </button>
         </div>
         
-        <form id="createActivityForm" action="index.php?module=activity&action=store" method="POST">
+        <form id="createActivityForm" action="<?= $basePath ?>/?module=activity&action=store" method="POST">
             <?= Auth::csrfField() ?>
             
             <div class="mb-4">
@@ -196,15 +196,15 @@ function closeCreateActivityModal() {
 }
 
 function openEditActivityModal(activityId) {
-    document.getElementById('editActivityForm').action = 'index.php?module=activity&action=update&id=' + activityId;
+    document.getElementById('editActivityForm').action = '<?= $basePath ?>/?module=activity&action=update&id=' + activityId;
     
-    fetch('index.php?module=activity&action=get_json&id=' + activityId)
+    fetch('<?= $basePath ?>/?module=activity&action=get_json&id=' + activityId)
         .then(function(response) {
             var contentType = response.headers.get('content-type');
             if (contentType && contentType.indexOf('application/json') !== -1) {
                 return response.json();
             }
-            window.location.href = 'index.php';
+            window.location.href = '<?= $basePath ?>/';
             throw new Error('Session expired');
         })
         .then(function(data) {

@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../config/database.php';
+$appConfig = require __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../models/ActivityLog.php';
 require_once __DIR__ . '/../helpers/mail.php';
@@ -19,7 +20,7 @@ class UserController
 
     private function getReturnUrl()
     {
-        return $_GET['return'] ?? $_POST['return'] ?? 'index.php?module=user';
+        return $_GET['return'] ?? $_POST['return'] ?? ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=user';
     }
 
     public function index()
@@ -44,6 +45,7 @@ class UserController
 
     public function store()
     {
+        global $appConfig;
         $returnUrl = $this->getReturnUrl();
         
         $this->user->firstname = trim($_POST['firstname'] ?? '');
@@ -60,23 +62,23 @@ class UserController
 
         // Admin cannot create superadmin users
         if ($this->user->role == 3 && !Auth::isSuperAdmin()) {
-            header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('admin_required')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=user&toast=error&message=' . urlencode(Locale::get('admin_required')));
             exit;
         }
 
         // Email is required
         if (empty($this->user->email)) {
-            header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('email_required')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=user&toast=error&message=' . urlencode(Locale::get('email_required')));
             exit;
         }
 
         if (!filter_var($this->user->email, FILTER_VALIDATE_EMAIL)) {
-            header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('email_invalid')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=user&toast=error&message=' . urlencode(Locale::get('email_invalid')));
             exit;
         }
 
         if (!empty($this->user->username) && $this->user->isUsernameTaken($this->user->username, null, $this->user->bag_id)) {
-            header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('username_taken')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=user&toast=error&message=' . urlencode(Locale::get('username_taken')));
             exit;
         }
 
@@ -84,7 +86,7 @@ class UserController
         if (isset($_FILES['picture']) && $_FILES['picture']['error'] === UPLOAD_ERR_OK) {
             $uploaded = $this->user->uploadPicture($_FILES['picture']);
             if ($uploaded === false) {
-                header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('invalid_file')));
+                header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=user&toast=error&message=' . urlencode(Locale::get('invalid_file')));
                 exit;
             }
             $this->user->picture = $uploaded;
@@ -112,7 +114,8 @@ class UserController
                     $this->user->firstname,
                     $this->user->username,
                     User::getDefaultPassword(),
-                    $bag ? ($bag['long_name'] ?? $bag['name']) : ''
+                    $bag ? ($bag['long_name'] ?? $bag['name']) : '',
+                    $appConfig['base_url']
                 );
             }
 
@@ -122,7 +125,7 @@ class UserController
         
         ActivityLog::log('user_creation_failed', null, $this->user->firstname . ' ' . $this->user->lastname,
             ['username' => $this->user->username, 'bag_id' => $this->user->bag_id, 'reason' => 'duplicate_or_error']);
-        header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('username_taken')));
+        header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=user&toast=error&message=' . urlencode(Locale::get('username_taken')));
         exit;
     }
 
@@ -151,24 +154,24 @@ class UserController
 
         // Admin cannot promote to superadmin
         if ($this->user->role == 3 && !Auth::isSuperAdmin()) {
-            header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('admin_required')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=user&toast=error&message=' . urlencode(Locale::get('admin_required')));
             exit;
         }
 
         // Admin cannot change superadmin role
         if (($existingUser['role'] ?? 0) == 3 && !Auth::isSuperAdmin()) {
-            header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('admin_required')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=user&toast=error&message=' . urlencode(Locale::get('admin_required')));
             exit;
         }
 
         // Email is required
         if (empty($this->user->email)) {
-            header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('email_required')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=user&toast=error&message=' . urlencode(Locale::get('email_required')));
             exit;
         }
 
         if (!filter_var($this->user->email, FILTER_VALIDATE_EMAIL)) {
-            header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('email_invalid')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=user&toast=error&message=' . urlencode(Locale::get('email_invalid')));
             exit;
         }
 
@@ -179,19 +182,19 @@ class UserController
 
         // Only superadmin can change bag
         if ($bagChanged && !Auth::isSuperAdmin()) {
-            header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('admin_required')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=user&toast=error&message=' . urlencode(Locale::get('admin_required')));
             exit;
         }
 
         // If bag is changing, check for verified payments
         if ($bagChanged && $this->hasVerifiedPayments($id)) {
-            header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('cannot_move_user_verified_payments')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=user&toast=error&message=' . urlencode(Locale::get('cannot_move_user_verified_payments')));
             exit;
         }
 
         // Check username uniqueness in destination bag
         if (!empty($this->user->username) && $this->user->isUsernameTaken($this->user->username, $id, $newBagId)) {
-            header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('username_taken')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=user&toast=error&message=' . urlencode(Locale::get('username_taken')));
             exit;
         }
 
@@ -203,7 +206,7 @@ class UserController
             }
             $uploaded = $this->user->uploadPicture($_FILES['picture']);
             if ($uploaded === false) {
-                header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('invalid_file')));
+                header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=user&toast=error&message=' . urlencode(Locale::get('invalid_file')));
                 exit;
             }
             $this->user->picture = $uploaded;
@@ -227,7 +230,7 @@ class UserController
             header('Location: ' . $returnUrl . '&toast=success&message=' . urlencode(Locale::get('updated_successfully')));
             exit;
         }
-        header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('error_updating')));
+        header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=user&toast=error&message=' . urlencode(Locale::get('error_updating')));
         exit;
     }
 
@@ -266,6 +269,7 @@ class UserController
 
     public function resetPassword($id)
     {
+        global $appConfig;
         $userData = $this->user->getById($id);
         if ($this->user->resetPassword($id)) {
             ActivityLog::log('password_reset', $id, $userData['firstname'] . ' ' . $userData['lastname'], ['reset_by' => Auth::getUserId()]);
@@ -289,14 +293,15 @@ class UserController
                     $userData['firstname'],
                     $userData['username'],
                     User::getDefaultPassword(),
-                    $bag ? ($bag['long_name'] ?? $bag['name']) : ''
+                    $bag ? ($bag['long_name'] ?? $bag['name']) : '',
+                    $appConfig['base_url']
                 );
             }
 
-            header('Location: index.php?module=user&toast=success&message=' . urlencode(Locale::get('password_reset_successfully')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=user&toast=success&message=' . urlencode(Locale::get('password_reset_successfully')));
             exit;
         }
-        header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('error_resetting_password')));
+        header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=user&toast=error&message=' . urlencode(Locale::get('error_resetting_password')));
         exit;
     }
 
@@ -304,7 +309,7 @@ class UserController
     {
         $userData = $this->user->getById($id);
         if (!$userData) {
-            header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('user_not_found')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=user&toast=error&message=' . urlencode(Locale::get('user_not_found')));
             exit;
         }
         
@@ -315,22 +320,22 @@ class UserController
             $stmt->execute();
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($result['count'] <= 1) {
-                header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('cannot_delete_last_superadmin')));
+                header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=user&toast=error&message=' . urlencode(Locale::get('cannot_delete_last_superadmin')));
                 exit;
             }
         }
         
         if ($this->hasVerifiedPayments($id)) {
-            header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('cannot_delete_user_verified_payments')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=user&toast=error&message=' . urlencode(Locale::get('cannot_delete_user_verified_payments')));
             exit;
         }
         
         if ($this->user->delete($id)) {
             ActivityLog::log('user_deleted', $id, $userData['firstname'] . ' ' . $userData['lastname'] ?? null);
-            header('Location: index.php?module=user&toast=success&message=' . urlencode(Locale::get('deleted_successfully')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=user&toast=success&message=' . urlencode(Locale::get('deleted_successfully')));
             exit;
         }
-        header('Location: index.php?module=user&toast=error&message=' . urlencode(Locale::get('error_deleting')));
+        header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?module=user&toast=error&message=' . urlencode(Locale::get('error_deleting')));
         exit;
     }
 
@@ -376,12 +381,12 @@ class UserController
 
         // Email is required
         if (empty($email)) {
-            header('Location: index.php?toast=error&message=' . urlencode(Locale::get('email_required')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?toast=error&message=' . urlencode(Locale::get('email_required')));
             exit;
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            header('Location: index.php?toast=error&message=' . urlencode(Locale::get('email_invalid')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?toast=error&message=' . urlencode(Locale::get('email_invalid')));
             exit;
         }
 
@@ -456,21 +461,22 @@ class UserController
             }
             
             ActivityLog::log('profile_updated', $userId, $firstname . ' ' . $lastname, $logPayload, !empty($changes) ? $changes : null);
-            header('Location: index.php?toast=success&message=' . urlencode(Locale::get('profile_updated_successfully')));
+            header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?toast=success&message=' . urlencode(Locale::get('profile_updated_successfully')));
             exit;
         }
         
         ActivityLog::log('profile_update_failed', $userId, $firstname . ' ' . $lastname, 
             ['reason' => 'database_error', 'picture_status' => $pictureResult ? 'uploaded' : $pictureError]);
-        header('Location: index.php?toast=error&message=' . urlencode(Locale::get('error_updating')));
+        header('Location: ' . ($_SERVER['HTTP_X_BASE_PATH'] ?? '') . '/?toast=error&message=' . urlencode(Locale::get('error_updating')));
         exit;
     }
 
-    private function sendUserCreatedEmail($to, $firstname, $username, $password, $groupName)
+    private function sendUserCreatedEmail($to, $firstname, $username, $password, $groupName, $baseUrl = '')
     {
         $lang = Locale::getCurrentLanguage();
         $subject = $lang === 'es' ? "Tu cuenta ha sido creada" : "Your account has been created";
         $name = $firstname;
+        $loginUrl = htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8');
 
         if ($lang === 'es') {
             $body = "<div style='font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:20px;'>
@@ -480,6 +486,7 @@ class UserController
                 <p><strong>Usuario:</strong> {$username}</p>
                 <p><strong>Contraseña:</strong> {$password}</p>
                 <p style='color:#dc2626;font-size:13px;'>Por favor cambia tu contraseña después de iniciar sesión.</p>
+                <p style='text-align:center;margin:24px 0;'><a href='{$loginUrl}' style='display:inline-block;background-color:#2563eb;color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:bold;'>Iniciar Sesión</a></p>
                 <hr style='border:none;border-top:1px solid #e5e7eb;margin:20px 0;'>
                 <p style='font-size:12px;color:#9ca3af;'>Savings App</p>
             </div>";
@@ -491,6 +498,7 @@ class UserController
                 <p><strong>Username:</strong> {$username}</p>
                 <p><strong>Password:</strong> {$password}</p>
                 <p style='color:#dc2626;font-size:13px;'>Please change your password after your first login.</p>
+                <p style='text-align:center;margin:24px 0;'><a href='{$loginUrl}' style='display:inline-block;background-color:#2563eb;color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:bold;'>Login</a></p>
                 <hr style='border:none;border-top:1px solid #e5e7eb;margin:20px 0;'>
                 <p style='font-size:12px;color:#9ca3af;'>Savings App</p>
             </div>";
@@ -499,11 +507,12 @@ class UserController
         Mail::sendAsync($to, $subject, $body);
     }
 
-    private function sendPasswordResetEmail($to, $firstname, $username, $password, $groupName)
+    private function sendPasswordResetEmail($to, $firstname, $username, $password, $groupName, $baseUrl = '')
     {
         $lang = Locale::getCurrentLanguage();
         $subject = $lang === 'es' ? "Contraseña restablecida" : "Password reset";
         $name = $firstname;
+        $loginUrl = htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8');
 
         if ($lang === 'es') {
             $body = "<div style='font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:20px;'>
@@ -513,6 +522,7 @@ class UserController
                 <p><strong>Usuario:</strong> {$username}</p>
                 <p><strong>Nueva contraseña:</strong> {$password}</p>
                 <p style='color:#dc2626;font-size:13px;'>Por favor cambia tu contraseña después de iniciar sesión.</p>
+                <p style='text-align:center;margin:24px 0;'><a href='{$loginUrl}' style='display:inline-block;background-color:#2563eb;color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:bold;'>Iniciar Sesión</a></p>
                 <hr style='border:none;border-top:1px solid #e5e7eb;margin:20px 0;'>
                 <p style='font-size:12px;color:#9ca3af;'>Savings App</p>
             </div>";
@@ -524,6 +534,7 @@ class UserController
                 <p><strong>Username:</strong> {$username}</p>
                 <p><strong>New password:</strong> {$password}</p>
                 <p style='color:#dc2626;font-size:13px;'>Please change your password after logging in.</p>
+                <p style='text-align:center;margin:24px 0;'><a href='{$loginUrl}' style='display:inline-block;background-color:#2563eb;color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:bold;'>Login</a></p>
                 <hr style='border:none;border-top:1px solid #e5e7eb;margin:20px 0;'>
                 <p style='font-size:12px;color:#9ca3af;'>Savings App</p>
             </div>";

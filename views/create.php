@@ -3,7 +3,7 @@
 <div class="max-w-5xl mx-auto bg-white rounded-lg shadow-md p-4 md:p-6">
     <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-6"><?= Locale::get('add_new_saving') ?></h1>
 
-    <form action="index.php?action=store&return=<?= urlencode($_SERVER['HTTP_REFERER'] ?? 'index.php?action=payments') ?>" method="POST" enctype="multipart/form-data" class="max-w-lg" novalidate>
+    <form action="<?= $basePath ?>/?action=store&return=<?= urlencode($_SERVER['HTTP_REFERER'] ?? $basePath . '/?action=payments') ?>" method="POST" enctype="multipart/form-data" class="max-w-lg" novalidate>
         <?= Auth::csrfField() ?>
         <div class="mb-4">
             <label for="user_id" class="block text-sm font-medium text-gray-700 mb-1"><?= Locale::get('user') ?> *</label>

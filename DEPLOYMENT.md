@@ -33,7 +33,7 @@ DB_USERNAME=root
 DB_PASSWORD=your_secure_password
 DB_ROOT_PASSWORD=your_root_password
 DEFAULT_PASSWORD=abcd1234
-APP_VERSION=1.4.2
+APP_VERSION=1.4.3
 APP_BUILD_DATE=2026-07-01 00:00:00
 DEFAULT_FIXED_AMOUNT=50000
 ```
@@ -50,7 +50,7 @@ DEFAULT_FIXED_AMOUNT=50000
 | `DB_PASSWORD` | MySQL password | (required) |
 | `DB_ROOT_PASSWORD` | MySQL root password | (required) |
 | `DEFAULT_PASSWORD` | Default password for new users | `abcd1234` |
-| `APP_VERSION` | Application version | `1.4.2` |
+| `APP_VERSION` | Application version | `1.4.3` |
 | `APP_BUILD_DATE` | Build timestamp | (auto-generated) |
 | `DEFAULT_FIXED_AMOUNT` | Default fixed monthly payment | `50000` |
 

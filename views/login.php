@@ -19,7 +19,7 @@ $bags = $bagModel->getAll()->fetchAll(PDO::FETCH_ASSOC);
             </p>
         </div>
         
-        <form action="index.php?action=login" method="POST" class="mt-8 space-y-6" onsubmit="return validateLoginForm()">
+        <form action="<?= $basePath ?>/?action=login" method="POST" class="mt-8 space-y-6" onsubmit="return validateLoginForm()">
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(Auth::getCsrfToken()) ?>">
             <input type="hidden" id="bag_id" name="bag_id" value="">
             
@@ -131,7 +131,7 @@ $bags = $bagModel->getAll()->fetchAll(PDO::FETCH_ASSOC);
 
 <script>
 function switchLanguage(lang) {
-    window.location.href = 'index.php?lang=' + lang;
+    window.location.href = '<?= $basePath ?>/?lang=' + lang;
 }
 
 var isPickerOpen = false;
